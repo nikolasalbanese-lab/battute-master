@@ -1,0 +1,1674 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Battute master</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Battute">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f5f0e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1a1815" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Nunito:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: banco da prestigiatore — testata, mazzo da cui pescare una battuta, poi l'elenco filtrabile per sezione */
+:root{
+  --bg:#f5f0e4; --surface:#fbf8f0; --ink:#1c1b19; --muted:#6b6559; --line:#d9d1bf;
+  --felt:#1c1b19; --felt-ink:#f5f0e4; --suit:#c0361f; --star:#c0361f; --chip:#ebe4d3;
+  --display:"Source Serif 4", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --body:"Source Serif 4", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1a1815; --surface:#221f1b; --ink:#ece6d8; --muted:#a39b8b; --line:#3a352d;
+  --felt:#ece6d8; --felt-ink:#1a1815; --suit:#ef6b55; --star:#ef6b55; --chip:#2a2620; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1a1815; --surface:#221f1b; --ink:#ece6d8; --muted:#a39b8b; --line:#3a352d;
+  --felt:#ece6d8; --felt-ink:#1a1815; --suit:#ef6b55; --star:#ef6b55; --chip:#2a2620; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-direction:column;gap:8px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,7vw,54px);line-height:1;margin:0;letter-spacing:-.02em;text-wrap:balance}
+h1 .suit{color:var(--suit)}
+.sub{color:var(--muted);margin:0;max-width:62ch}
+.status{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;background:var(--chip);color:var(--muted);font-family:var(--mono);font-size:12px;letter-spacing:0;text-transform:none}
+.status .dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.status.live .dot{background:var(--felt)}
+.status button{font:inherit;color:var(--felt);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+
+/* Mazzo */
+.deck{background:var(--felt);color:var(--felt-ink);border-radius:12px}
+.deck summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:12px 16px;border-radius:12px}
+.deck summary::-webkit-details-marker{display:none}
+.deck summary:focus-visible{outline:2px solid var(--suit);outline-offset:2px}
+.sumt{font-family:var(--display);font-weight:700;font-size:16px}
+.sumh{font-size:14px;opacity:.8;flex:0 1 auto}
+.chev{transition:transform .2s;font-size:14px;margin-left:auto}
+.deck[open] .chev{transform:rotate(180deg)}
+.deckbody{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.card{width:100%;background:var(--surface);color:var(--ink);border-radius:10px;padding:20px 22px 16px;position:relative;min-width:0;box-shadow:0 1px 0 rgba(0,0,0,.08),0 8px 24px rgba(0,0,0,.18)}
+.card .pip{position:absolute;top:10px;right:14px;font-family:var(--display);font-weight:700;color:var(--suit);font-size:15px}
+.card .txt{font-size:20px;line-height:1.45;margin:0 30px 10px 0}
+.card .meta{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.btn{font-family:var(--display);font-weight:700;font-size:15px;border-radius:999px;padding:10px 18px;border:0;cursor:pointer;background:var(--felt-ink);color:var(--felt);white-space:nowrap}
+.btn:hover{filter:brightness(.95)}
+.btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--suit);outline-offset:2px}
+
+.add{background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.add summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:12px 16px;border-radius:12px}
+.add summary::-webkit-details-marker{display:none}
+.add summary:focus-visible{outline:2px solid var(--suit);outline-offset:2px}
+.add[open] .chev{transform:rotate(180deg)}
+.add .sumt{color:var(--felt)}
+.add .sumh{color:var(--muted);opacity:1}
+.addbody{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld.grow{flex:1 1 220px}
+.fld > span{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.fld textarea,.fld input,.fld select{font-family:var(--body);font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%;min-width:0;resize:vertical}
+.fld select{flex:none}
+.btn.solid{background:var(--felt);color:var(--felt-ink)}
+.btn:disabled{opacity:.55;cursor:default}
+.addmsg{font-size:14px;color:var(--muted);flex:1 1 200px}
+.addmsg.err{color:var(--suit)}
+.pend{background:color-mix(in srgb, var(--felt) 16%, transparent);color:var(--felt);border-radius:6px;padding:1px 7px}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs a{font-family:var(--display);font-weight:700;font-size:16px;color:var(--muted);text-decoration:none;padding:8px 14px;border-bottom:3px solid transparent;margin-bottom:-1px;display:inline-flex;align-items:center;gap:8px}
+.tabs a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--suit)}
+.badge{font-family:var(--mono);font-size:12px;font-weight:500;background:var(--suit);color:#fff;border-radius:999px;padding:1px 8px}
+.view{display:flex;flex-direction:column;gap:28px}
+.vhead h2{font-family:var(--display);font-weight:800;font-size:26px;margin:0 0 4px;text-wrap:balance}
+.vhead p{margin:0;color:var(--muted);max-width:62ch}
+.applybar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:color-mix(in srgb, var(--felt) 12%, var(--surface));border:1px solid color-mix(in srgb, var(--felt) 35%, transparent);border-radius:12px;padding:12px 16px}
+.applybar span{flex:1 1 220px}
+.queue{display:flex;flex-direction:column;gap:14px}
+.cand{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:opacity .2s}
+.cand.busy{opacity:.5;pointer-events:none}
+.cand .meta{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cand textarea{font-family:var(--body);font-size:18px;line-height:1.45;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;resize:vertical;min-height:3.2em}
+.cand .old{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.cand .acts2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cand select{flex:1 1 220px}
+.btn.ghost{background:var(--chip);color:var(--ink)}
+.btn.bad{background:none;color:var(--suit);border:1px solid color-mix(in srgb, var(--suit) 45%, transparent)}
+.laterrow{display:flex;gap:10px;align-items:flex-start;border-top:1px solid var(--line);padding-top:10px}
+.laterrow p{margin:0;flex:1;min-width:0}
+
+/* Filtri */
+.tools{display:flex;flex-direction:column;gap:12px;position:sticky;top:env(safe-area-inset-top, 0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:10;background:var(--bg)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search{display:flex;align-items:center;gap:10px;background:var(--surface);border:2px solid var(--ink);border-radius:14px;padding:4px 14px;cursor:text}
+.search:focus-within{border-color:var(--felt);box-shadow:0 0 0 4px color-mix(in srgb, var(--felt) 18%, transparent)}
+.search svg{width:22px;height:22px;flex:none;color:var(--muted)}
+.search input{flex:1;min-width:0;border:0;outline:0;background:none;color:var(--ink);font-family:var(--display);font-weight:500;font-size:clamp(18px,3.4vw,22px);padding:10px 0}
+.search input::placeholder{color:var(--muted);font-weight:400}
+select{font-family:var(--display);font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0;flex:1 1 180px;max-width:100%}
+.row .count{flex:0 0 auto;margin-left:auto}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:var(--display);font-weight:500;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer}
+.chip .n{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:4px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip[aria-pressed="true"] .n{color:inherit;opacity:.7}
+.chip.starred{border-color:var(--star)}
+.count{font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Elenco */
+section.sec{display:flex;flex-direction:column;gap:0}
+section.sec h3{font-family:var(--display);font-weight:700;font-size:22px;margin:0 0 6px;display:flex;align-items:baseline;gap:10px;text-wrap:balance}
+section.sec h3 .num{font-family:var(--mono);font-size:13px;color:var(--suit);font-weight:500}
+section.sec.ref h3{color:var(--muted)}
+.refnote{font-family:var(--mono);font-size:12px;color:var(--muted);margin:-2px 0 8px}
+ol.jokes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+li.joke{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 0;border-top:1px solid var(--line)}
+li.joke .txt{margin:0;min-width:0;overflow-wrap:anywhere}
+section.ref li.joke .txt{color:var(--muted);font-style:italic}
+li.joke .meta{grid-column:1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.meta a{color:var(--felt);text-decoration:none;border-bottom:1px solid currentColor}
+.note{background:var(--chip);border-radius:6px;padding:1px 7px;color:var(--ink)}
+.acts{grid-column:2;grid-row:1 / span 2;display:flex;gap:2px;align-items:flex-start}
+.icon{width:36px;height:36px;border-radius:8px;border:0;background:none;color:var(--muted);cursor:pointer;display:grid;place-items:center}
+.icon:hover{background:var(--chip);color:var(--ink)}
+.icon[aria-pressed="true"]{color:var(--star)}
+.icon svg{width:18px;height:18px}
+mark{background:color-mix(in srgb, var(--star) 28%, transparent);color:inherit;border-radius:2px}
+.empty{color:var(--muted);padding:24px 0;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom, 0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);font-family:var(--display);font-weight:500;padding:8px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+footer{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+footer a{color:var(--felt)}
+@media (max-width:560px){.card .txt{font-size:18px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@keyframes deal{from{transform:translateY(-6px) rotate(-1.5deg);opacity:.4}to{transform:none;opacity:1}}
+.card.dealt{animation:deal .28s ease-out}
+/* App iPhone: tocco comodo, niente zoom al doppio tap, niente hover "appiccicoso" */
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+a,button,summary,label,select,.chip,.icon,.btn{touch-action:manipulation}
+.icon{width:44px;height:44px}
+.chip{min-height:44px;padding:10px 14px}
+.btn{min-height:44px}
+select,.fld select{min-height:44px}
+.tabs a{padding:12px 14px}
+.deck summary,.add summary{min-height:48px;align-items:center}
+@media (hover:none){
+  .icon:hover{background:none;color:var(--muted)}
+  .icon[aria-pressed="true"]:hover{color:var(--star)}
+  .btn:hover{filter:none}
+}
+@media (display-mode:standalone){
+  .wrap{padding-top:16px}
+}
+/* Direzione C: carta e inchiostro */
+h1{font-weight:600;font-size:clamp(30px,8vw,40px);letter-spacing:-.01em;line-height:1.05}
+h1 .suit{display:none}
+.sub{font-style:italic}
+.eyebrow{text-transform:none;letter-spacing:.02em}
+.status{background:none;border:1px solid var(--line);border-radius:4px}
+.search{background:none;border:0;border-bottom:1px solid var(--ink);border-radius:0;padding:0}
+.search:focus-within{border-color:var(--suit);box-shadow:none}
+.search input{font-family:var(--display);font-weight:400}
+select,.fld select{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;font-family:var(--display);padding-left:0}
+.fld textarea,.fld input{background:var(--surface);border-radius:4px}
+.cand,.add{border-radius:4px;background:var(--surface)}
+.cand textarea{border-radius:4px}
+.btn{border:1px solid var(--line);border-radius:4px;font-family:var(--display);font-weight:600}
+.btn.solid{border-color:var(--felt)}
+.btn.ghost{background:none;color:var(--ink)}
+.chip{border-radius:4px;font-family:var(--display);font-weight:400}
+.deck{background:none;color:var(--ink);border-radius:0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+.deck summary{padding:14px 0;border-radius:0}
+.sumt{font-weight:600}
+.sumh{opacity:1;color:var(--muted);font-style:italic}
+.deckbody{padding:0 0 16px}
+.card{background:none;box-shadow:none;border-radius:0;padding:0}
+.card .pip{position:static;display:block;margin-bottom:6px;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--suit)}
+.card .txt{font-size:24px;line-height:1.3;margin:0 0 12px}
+.deckbody .btn{background:none;color:var(--suit);border:0;border-bottom:1px solid var(--suit);border-radius:0;padding:0 2px;min-height:44px}
+section.sec h3{font-weight:600;border-bottom:1px solid var(--ink);padding-bottom:6px;margin-bottom:0}
+li.joke{grid-template-columns:30px 1fr auto;padding:14px 0}
+li.joke .jn{grid-column:1;grid-row:1;font-family:var(--mono);font-size:12px;color:var(--suit);padding-top:6px}
+li.joke .txt{grid-column:2;grid-row:1;font-size:17px;line-height:1.4}
+li.joke .meta{grid-column:2;grid-row:2}
+.acts{grid-column:3;grid-row:1 / span 2}
+.note{border-radius:4px}
+.wrap{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}
+.toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+@media (max-width:560px){.card .txt{font-size:22px}}
+/* Layout come da proposta C */
+header{gap:4px}
+.sub{font-size:15px}
+.tools{gap:2px;padding-block:8px 0;border-bottom:0}
+.tabrow{display:flex;gap:20px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabrow::-webkit-scrollbar{display:none}
+.tabrow button{flex:none;background:none;border:0;border-bottom:2px solid transparent;border-radius:0;font-family:var(--display);font-size:14px;color:var(--muted);padding:10px 0 6px;min-height:44px;cursor:pointer;white-space:nowrap}
+.tabrow button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--suit)}
+.pescata{display:flex;flex-direction:column;gap:6px;margin-top:-8px}
+.pescata .card .meta{margin-top:2px}
+.redraw{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;background:none;border:0;padding:0;min-height:44px;color:var(--suit);font-family:var(--display);font-size:14px;cursor:pointer}
+.redraw svg{width:16px;height:16px}
+.countline{display:flex;align-items:center;gap:12px;margin:-14px 0 -18px}
+.countline select{flex:0 1 auto;margin-left:auto;font-size:13px;min-height:44px}
+section.sec:not(.ref)>h3{display:none}
+.icon[data-star]{color:var(--suit)}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:space-around;gap:0;background:var(--bg);border-top:1px solid var(--line);padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px))}
+.tabs a,.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;margin:0;padding:2px 0;border:0;border-radius:0;background:none;font-family:var(--display);font-size:11px;font-weight:400;color:var(--muted);text-decoration:none;cursor:pointer;position:relative}
+.tabs svg{width:22px;height:22px}
+.tabs [aria-current="page"]{color:var(--suit)}
+.tabs .badge{position:absolute;top:0;left:calc(50% + 8px);font-size:10px;padding:0 6px}
+footer .status{align-self:flex-start}
+/* Allineamento alla proposta C dopo lo screenshot */
+.tabs a[aria-current="page"],.tabs button[aria-current="page"]{color:var(--suit);border:0}
+li.joke .meta,.card .meta{font-family:var(--display);font-style:italic;font-size:12px;color:var(--muted);gap:4px 10px}
+li.joke .meta a,.card .meta a{color:var(--muted);border-bottom:0;text-decoration:none}
+li.joke .meta .note{background:none;padding:0;color:var(--muted)}
+li.joke .jn{padding-top:5px}
+.icon{color:var(--muted)}
+.icon[data-star]{color:var(--suit)}
+.pescata{margin-top:0}
+#viewPesca{gap:14px}
+#viewPesca .card .txt{font-size:28px;line-height:1.3;margin-bottom:14px}
+.srcfilter{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.srcfilter select{flex:1 1 auto;margin:0;font-size:13px}
+.countline{margin:-14px 0 -20px}
+/* iPhone 17 Pro: 402 x 874 pt, Dynamic Island, barra Home */
+.wrap{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));gap:24px}
+h1{font-size:clamp(32px,9vw,40px)}
+.sub{font-size:16px}
+.search input{font-size:20px;padding:12px 0}
+.tabrow{gap:22px}
+.tabrow button{font-size:15px}
+li.joke{padding:16px 0}
+li.joke .txt{font-size:18px}
+li.joke .meta,.card .meta{font-size:13px}
+.card .pip{font-size:13px}
+.icon{width:46px;height:46px}
+.icon svg{width:20px;height:20px}
+.tabs{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.tabs a,.tabs button{min-height:52px;font-size:12px}
+.tabs svg{width:24px;height:24px}
+#viewPesca{min-height:calc(100svh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 300px)}
+.pescata{flex:1;display:flex;flex-direction:column;gap:16px}
+#viewPesca .card{flex:1;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
+#viewPesca .card .txt{font-size:clamp(28px,8vw,34px)}
+#viewPesca .redraw{align-self:stretch;justify-content:center;min-height:56px;border:1px solid var(--suit);border-radius:4px;font-size:17px}
+
+/* Veste "app": guscio fisso, barra con titolo che si riduce, foglio dal basso, font di sistema per i comandi */
+:root{--ui:ui-rounded,"SF Pro Rounded","Nunito",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;padding-top:0;padding-bottom:0}
+html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;background:var(--bg)}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.txt,textarea,input{-webkit-user-select:text;user-select:text}
+body::before{display:none}
+.wrap{position:fixed;inset:0;max-width:none;margin:0;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding-top:calc(env(safe-area-inset-top,0px) + 52px);padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))}
+.wrap>*{flex:none}
+.navbar{position:fixed;top:0;left:0;right:0;z-index:15;height:calc(44px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px);display:flex;align-items:center;justify-content:center;background:transparent}
+.navbar.on{background:color-mix(in srgb,var(--bg) 82%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);box-shadow:0 .5px 0 var(--line)}
+.navtitle{font:600 17px var(--ui);opacity:0;transition:opacity .15s}
+.navbar.on .navtitle{opacity:1}
+.navbtn{position:absolute;right:max(8px,env(safe-area-inset-right,0px));bottom:0;width:48px;height:44px;display:grid;place-items:center;background:none;border:0;padding:0;color:var(--suit);cursor:pointer}
+.tools{display:contents}
+#viewElenco{gap:10px}
+.search{margin-top:4px}
+.search input{font-family:var(--ui);font-size:17px;padding:11px 0}
+#sec{position:sticky;top:calc(env(safe-area-inset-top,0px) + 44px);z-index:6;margin-inline:-20px;padding-inline:20px;background:color-mix(in srgb,var(--bg) 85%,transparent);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.countline{margin:0}
+.srcfilter{margin-top:8px}
+.tabrow button,.tabs a,.tabs button,.redraw,.btn,.chip,.countline,.srcfilter,select,.status,.toast,.txtbtn,.sheettitle,.fld>span{font-family:var(--ui)}
+.tabrow button{font-size:15px;font-weight:500}
+.tabs{background:color-mix(in srgb,var(--bg) 82%,transparent);-webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6)}
+li.joke{margin-inline:-20px;padding-inline:20px}
+li.joke:active{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.tabs a:active,.tabs button:active{opacity:.45}
+.btn:active,.redraw:active,.tabrow button:active,.icon:active,.navbtn:active,.txtbtn:active{opacity:.5}
+.view:not([hidden]){animation:viewin .24s ease-out}
+@keyframes viewin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.sheet-back{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.38);opacity:0;pointer-events:none;transition:opacity .22s}
+.sheet-back.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:31;max-height:90svh;overflow-y:auto;background:var(--bg);border-radius:16px 16px 0 0;padding:6px max(20px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));transform:translateY(105%);visibility:hidden;transition:transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s .3s}
+.sheet.on{transform:none;visibility:visible;transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.grab{width:38px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+.sheethead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.sheettitle{font-size:17px;font-weight:600}
+.sheetsp{width:72px}
+.txtbtn{width:72px;min-height:44px;padding:0;background:none;border:0;text-align:left;color:var(--suit);font-size:17px;cursor:pointer}
+.sheet .addbody{padding:0}
+.sheet .btn.solid{width:100%;min-height:50px;font-size:17px}
+footer{align-items:center;text-align:center;gap:10px;font-family:var(--ui);margin-top:8px}
+footer .status{background:none;border:0;padding:0}
+footer a:not(.cell){color:var(--muted);text-decoration:none}
+.cell{display:flex;justify-content:space-between;align-items:center;align-self:stretch;min-height:50px;border-top:.5px solid var(--line);border-bottom:.5px solid var(--line);color:var(--ink);text-decoration:none;font-size:17px}
+.cell:active{opacity:.5}
+h1{font-weight:800;font-size:clamp(36px,10.5vw,50px);line-height:1;letter-spacing:-.02em}
+.navtitle{font-weight:700}
+header{gap:12px}
+.title{display:flex;flex-direction:column;align-items:flex-start;margin:0;font-family:'Anton',Impact,'Arial Narrow',sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.01em;line-height:.9}
+.title .t1{display:inline-block;font-size:clamp(64px,23vw,96px);padding:.08em .15em .12em;background:var(--suit);color:var(--bg);transform:rotate(-2deg);transform-origin:left bottom}
+.title .t2{align-self:flex-end;display:inline-block;margin:-6px 6px 0 0;font-size:clamp(24px,8.5vw,36px);line-height:1;letter-spacing:.04em;padding:.12em .42em .18em;background:var(--ink);color:var(--bg);transform:rotate(3deg)}
+.sub{margin-top:2px}
+/* Font e misure come iOS (SF Pro, come la tastiera): 17 corpo, 15 secondario, 13 nota, 11 barra */
+:root{--body:var(--ui);--display:var(--ui);--mono:var(--ui)}
+body{font-size:17px;line-height:1.3;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.sub{font-size:15px;font-style:normal;color:var(--muted)}
+.search input,.fld textarea,.fld input,.cand textarea{font-size:17px}
+.tabrow button{font-size:15px;font-weight:500}
+.tabrow button[aria-selected="true"]{font-weight:600}
+li.joke .txt{font-size:17px;line-height:1.35;font-weight:400}
+li.joke .jn{font-size:13px;font-weight:600;padding-top:3px}
+li.joke .meta,.card .meta{font-size:13px;font-style:normal}
+.refnote{font-size:13px}
+.card .pip{font-size:13px;font-weight:600}
+#viewPesca .card .txt{font-size:clamp(26px,7.5vw,30px);font-weight:600;line-height:1.25;letter-spacing:-.01em}
+.redraw{font-size:17px;font-weight:600}
+.tabs a,.tabs button{font-size:11px;font-weight:500}
+.btn{font-size:17px;font-weight:600}
+.cand .old{font-size:15px}
+.vhead h2{font-size:28px;font-weight:700;letter-spacing:-.01em}
+.vhead p{font-size:15px}
+footer{font-size:13px}
+select,.countline,.srcfilter,.srcfilter select{font-size:15px}
+.toast{font-size:15px}
+.empty{font-size:17px}
+.sumt{font-size:17px;font-weight:600}
+.sumh{font-size:15px;font-style:normal}
+/* Dimensioni aumentate: circa +12% su tutto il testo, comandi più grandi */
+body{font-size:19px}
+.sub{font-size:17px}
+.search input,.fld textarea,.fld input,.cand textarea{font-size:19px}
+.search svg{width:24px;height:24px}
+.tabrow{gap:24px}
+.tabrow button{font-size:17px;min-height:48px}
+li.joke{padding-block:18px}
+li.joke .txt{font-size:19px;line-height:1.35}
+li.joke .jn{font-size:14px;width:34px}
+li.joke{grid-template-columns:34px 1fr auto}
+li.joke .meta,.card .meta{font-size:14px}
+.refnote{font-size:14px}
+.icon{width:50px;height:50px}
+.icon svg{width:22px;height:22px}
+.card .pip{font-size:14px}
+#viewPesca .card .txt{font-size:clamp(29px,8.4vw,34px)}
+.redraw{font-size:19px}
+#viewPesca .redraw{min-height:60px;font-size:19px}
+.tabs a,.tabs button{font-size:12px;min-height:56px}
+.tabs svg{width:26px;height:26px}
+.navtitle{font-size:18px}
+.btn{font-size:19px;min-height:50px}
+.sheet .btn.solid{min-height:54px;font-size:19px}
+.sheettitle,.txtbtn{font-size:19px}
+.cand .old{font-size:16px}
+.vhead h2{font-size:31px}
+.vhead p{font-size:17px}
+footer{font-size:14px}
+.cell{font-size:19px;min-height:54px}
+select,.countline,.srcfilter,.srcfilter select{font-size:17px}
+.toast{font-size:17px}
+.empty{font-size:19px}
+.sumt{font-size:19px}
+.sumh{font-size:17px}
+.fld>span{font-size:14px}
+/* Barre fisse piene (la lista non si vede sopra o attraverso) e testo delle battute come prima */
+.navbar,.navbar.on{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
+.tabs{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
+.secslot{height:48px}
+#sec{position:static;margin-inline:0;padding-inline:0;background:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+#sec.stuck{position:fixed;left:0;right:0;z-index:14;padding-inline:max(20px,env(safe-area-inset-left,0px));background:var(--bg);box-shadow:0 .5px 0 var(--line)}
+@keyframes viewin{from{opacity:0}to{opacity:1}}
+li.joke{padding-block:16px;grid-template-columns:30px 1fr auto}
+li.joke .txt,.cand textarea{font-size:17px}
+li.joke .jn{font-size:13px;width:auto}
+li.joke .meta,.card .meta,.refnote{font-size:13px}
+.card .pip{font-size:13px}
+#viewPesca .card .txt{font-size:clamp(26px,7.5vw,30px)}
+/* Commenti */
+li.joke{grid-template-columns:30px 1fr auto}
+li.joke .txt{grid-column:2 / span 2;grid-row:1}
+li.joke .meta{grid-column:2;grid-row:2;align-self:center}
+li.joke .acts{grid-column:3;grid-row:2;display:flex;gap:0;margin-right:-6px}
+li.joke .icon{width:44px;height:44px;position:relative}
+.icon.has{color:var(--ink)}
+.cbadge{position:absolute;top:3px;right:1px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;box-sizing:border-box;background:var(--suit);color:var(--bg);font:600 11px/17px var(--ui);text-align:center}
+.sheet{bottom:var(--kb,0px)}
+#cSheet{display:flex;flex-direction:column;height:min(78svh,640px);overflow:hidden;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+.txtbtn.r{text-align:right}
+.cjoke{margin:0 0 8px;font-size:15px;line-height:1.35;color:var(--muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.clist{flex:1;min-height:0;overflow-y:auto;border-top:.5px solid var(--line);-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.clist .empty{padding:24px 0;margin:0;color:var(--muted);font-size:16px}
+.cm{padding:12px 0;border-bottom:.5px solid var(--line)}
+.cm p{margin:0;font-size:17px;line-height:1.35;white-space:pre-wrap;-webkit-user-select:text;user-select:text}
+.cmeta{display:flex;justify-content:space-between;align-items:center;margin-top:2px;font-size:12px;color:var(--muted)}
+.cdel{background:none;border:0;padding:10px 0 10px 14px;font:inherit;color:var(--muted);cursor:pointer}
+.cdel.armed{color:var(--suit);font-weight:600}
+.cform{display:flex;align-items:flex-end;gap:8px;padding-top:10px}
+.cform textarea{flex:1;min-height:44px;max-height:120px;resize:none;padding:10px 14px;border:1px solid var(--line);border-radius:22px;background:var(--surface);color:var(--ink);font:17px/1.3 var(--ui);box-sizing:border-box}
+.csend{width:44px;height:44px;flex:none;border:0;border-radius:50%;background:var(--suit);color:var(--bg);display:grid;place-items:center;padding:0;cursor:pointer}
+.csend:disabled{opacity:.4}
+.csend svg{width:22px;height:22px}
+#viewPesca #cardCmt{align-self:center;border:0;min-height:48px;color:var(--ink);font-weight:500}
+#viewPesca #cardCmt svg{width:20px;height:20px}
+/* Rimozione: selezione multipla e scorrimento */
+li.joke{display:block;padding:0;position:relative;overflow:hidden;touch-action:pan-y}
+li.joke:active{background:none}
+.jrow{display:grid;grid-template-columns:30px 1fr auto;gap:4px 12px;padding:16px 20px;background:var(--bg);position:relative;z-index:1;transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+li.joke:active .jrow{background:color-mix(in srgb,var(--ink) 6%,var(--bg))}
+.swipe{position:absolute;top:0;right:0;bottom:0;width:104px;border:0;background:var(--suit);color:var(--bg);font:600 17px var(--ui);cursor:pointer}
+.chk{display:none;grid-column:1;grid-row:1;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--muted);box-sizing:border-box;margin-top:1px;position:relative}
+body.selecting .chk{display:block}
+body.selecting li.joke .jn{display:none}
+body.selecting .swipe{display:none}
+body.selecting li.joke .acts{pointer-events:none;opacity:.3}
+body.selecting li.joke[data-pending]{opacity:.45}
+li.joke.sel .chk{background:var(--suit);border-color:var(--suit)}
+li.joke.sel .chk::after{content:"";position:absolute;left:7px;top:3px;width:6px;height:11px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.navbtn.l{right:auto;left:max(8px,env(safe-area-inset-left,0px));width:auto;padding:0 10px;font:500 17px var(--ui)}
+.selbar{position:fixed;left:0;right:0;bottom:0;z-index:21;display:none;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);border-top:1px solid var(--line);padding:6px max(12px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px))}
+body.selecting .selbar{display:flex}
+body.selecting .tabs{display:none}
+.selbar button{min-height:52px;min-width:72px;background:none;border:0;font:500 17px var(--ui);color:var(--suit);padding:0 10px;cursor:pointer}
+.selbar button.danger{font-weight:600;text-align:right}
+.selbar button:disabled{opacity:.35}
+.selbar .selc{font:500 15px var(--ui);color:var(--muted)}
+.rmbanner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--chip);border-radius:10px;padding:2px 4px 2px 14px;font:15px var(--ui);color:var(--muted)}
+.rmbanner{flex-wrap:wrap}
+.rmbanner button{background:none;border:0;min-height:44px;padding:0 12px;font:600 15px var(--ui);color:var(--suit);cursor:pointer}
+#dSheet .dtitle{margin:6px 0 8px;font:600 19px var(--ui)}
+#dSheet .dtxt{margin:0 0 8px;font-size:17px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+#dSheet .dnote{margin:0 0 16px;font:14px/1.35 var(--ui);color:var(--muted)}
+#dSheet .btn{width:100%;margin-bottom:8px;min-height:52px}
+#dGo{background:var(--suit);color:var(--bg);border-color:var(--suit)}
+/* Rassegna: una carta alla volta */
+.rv{display:flex;flex-direction:column;gap:14px}
+.rv-card{background:var(--surface);color:var(--ink);border-radius:6px;padding:22px 22px 18px;position:relative;display:flex;flex-direction:column;gap:14px;box-shadow:0 1px 0 rgba(0,0,0,.06),0 10px 28px rgba(0,0,0,.12);border:1px solid var(--line);touch-action:pan-y;user-select:none;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.rv-card.drag{transition:none}
+.rv-card.in{animation:deal .32s ease-out}
+.rv-card.out-keep{transform:translateX(115%) rotate(7deg);opacity:0}
+.rv-card.out-drop{transform:translateX(-115%) rotate(-7deg);opacity:0}
+.rv-card.out-later{transform:translateY(36px) scale(.96);opacity:0}
+.rv-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-family:var(--mono);font-size:12px;color:var(--muted);min-width:0}
+.rv-src{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rv-src a{color:var(--felt);text-decoration:none;border-bottom:1px solid currentColor}
+.rv-count{flex:none;color:var(--suit);font-weight:500}
+.rv-txt{font-family:var(--body);font-size:clamp(22px,6.4vw,28px);font-weight:600;letter-spacing:-.01em;line-height:1.42;margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.rv-card textarea{font-family:var(--body);font-size:18px;line-height:1.45;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;resize:vertical}
+.rv-card select{width:100%;flex:none}
+.rv-link{background:none;border:0;padding:0;font-family:var(--display);font-weight:700;font-size:14px;color:var(--felt);cursor:pointer;align-self:flex-start}
+.rv-notes{display:flex;flex-direction:column;gap:6px}
+.rv-notes p{margin:0;font-size:14px;background:var(--chip);border-radius:8px;padding:8px 10px}
+.rv-notes b{font-family:var(--mono);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:6px}
+.rv-stamp{position:absolute;top:16px;font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px;opacity:0;pointer-events:none}
+.rv-stamp.keep{right:16px;background:var(--felt);color:var(--felt-ink)}
+.rv-stamp.drop{left:16px;background:var(--suit);color:#fff}
+.rv-actions{position:sticky;bottom:calc(84px + env(safe-area-inset-bottom, 0px));display:grid;grid-template-columns:1fr auto 1fr;gap:10px;z-index:4}
+.rv-btn{font-family:var(--display);font-weight:700;font-size:19px;border:0;border-radius:6px;min-height:58px;padding:0 14px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.14)}
+.rv-btn:active{transform:scale(.97)}
+.rv-btn:disabled{opacity:.5}
+.rv-btn.keep{background:var(--felt);color:var(--felt-ink)}
+.rv-btn.drop{background:var(--surface);color:var(--suit);border:2px solid var(--suit)}
+.rv-btn.later{background:var(--chip);color:var(--ink);font-size:14px;font-weight:700}
+.rv-hint{margin:0;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.rv-undo{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:14px;color:var(--muted)}
+.rv-undo span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* App fissa: la pagina non scorre, scorre solo la lista dentro la sua area */
+.wrap{overflow:hidden;display:flex;flex-direction:column;gap:0;padding-top:calc(env(safe-area-inset-top,0px) + 76px);padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))}
+.navbar{height:calc(76px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) max(20px,env(safe-area-inset-right,0px)) 0 max(20px,env(safe-area-inset-left,0px));justify-content:space-between;background:var(--bg);box-sizing:border-box}
+.navbar .title{margin:0;flex:none}
+.navbar .title .t1{font-size:46px}
+.navbar .title .t2{font-size:17px;margin:-8px 2px 0 0}
+.navactions{display:flex;align-items:center;margin-right:-8px}
+.navbtn,.navbtn.l{position:static;width:auto;min-width:44px;height:44px;padding:0 8px;right:auto;left:auto}
+.navbtn.l{font:500 17px var(--ui)}
+.navtitle{display:none}
+.view{flex:1;min-height:0}
+#viewElenco{display:flex;flex-direction:column;gap:0}
+.search{flex:none;margin-top:0}
+.secslot{flex:none}
+#sec.stuck{position:static}
+.pane{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin-inline:-20px;padding:0 20px 16px}
+.pane .sub{margin:8px 0 4px}
+.countline{margin:0 0 6px}
+.rmbanner{margin-bottom:8px}
+.srcfilter{margin-top:12px}
+#viewPesca,#viewValuta{display:flex;flex-direction:column;gap:14px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#viewPesca{min-height:0}
+.rv-actions{bottom:8px}
+/* Titolo grande come prima, fermo in alto con le azioni a destra */
+.wrap{padding-top:calc(env(safe-area-inset-top,0px) + 8px)}
+.apphead{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex:none;margin:0 0 8px;position:relative;z-index:2}
+.apphead .title{margin:0;flex:none}
+.apphead .title .t1{font-size:min(92px,calc((100vw - 104px)/3.3))}
+.actcol{display:flex;flex-direction:column;align-items:flex-end;margin-right:-8px}
+.actcol .navbtn{position:static;width:auto;min-width:48px;height:44px;padding:0 8px;display:grid;place-items:center}
+.selbtn .st{display:none;font:500 17px var(--ui)}
+.selbtn.on .st{display:inline}
+.selbtn.on .si{display:none}
+body[data-v="valuta"] .apphead .title .t1{font-size:40px}
+body[data-v="valuta"] .apphead .title .t2{font-size:16px;margin-top:-6px}
+/* Il titolo si riduce mentre scorri la lista */
+.apphead .title .t1,.apphead .title .t2{transition:font-size .25s ease,margin .25s ease}
+.apphead.mini{align-items:center;margin-bottom:4px}
+.apphead.mini .title{align-items:flex-start;margin-right:auto}
+.apphead.mini .title .t1{font-size:38px;margin-left:0}
+.apphead.mini .title .t2{font-size:14px;align-self:flex-start;margin:-4px 0 0 6px}
+.apphead.mini .actcol{flex-direction:row;align-items:center}
+/* + e Seleziona in un'unica capsula */
+.actcol{margin-right:0;align-items:stretch;gap:0;padding:0;overflow:hidden;border-radius:24px;background:var(--chip);box-shadow:inset 0 0 0 .5px var(--line)}
+.actcol .navbtn{width:50px;min-width:50px;height:48px;padding:0;border-radius:0}
+.actcol .navbtn+.navbtn{border-top:.5px solid var(--line)}
+.actcol .navbtn:active{opacity:1;background:color-mix(in srgb,var(--ink) 9%,transparent)}
+.selbtn.on{width:auto;min-width:56px;padding:0 10px}
+.apphead.mini .actcol{align-items:center}
+.apphead.mini .actcol .navbtn{height:42px}
+.apphead.mini .actcol .navbtn+.navbtn{border-top:0;border-left:.5px solid var(--line)}
+/* Pulsanti in orizzontale: riga alta (conteggio a sinistra, capsula a destra), titolo sotto */
+.apphead{flex-direction:column;align-items:stretch;gap:0}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}
+.apphead .sub{margin:0;font-size:15px}
+.topline{margin-top:20px}
+.apphead.mini .topline,body[data-v="valuta"] .apphead .topline{margin-top:0}
+.apphead .title{align-self:flex-start}
+.apphead .title .t1{font-size:clamp(64px,23vw,96px)}
+.actcol{flex-direction:row;align-items:center;margin-left:auto}
+.actcol .navbtn{width:52px;min-width:52px;height:44px}
+.actcol .navbtn+.navbtn{border-top:0;border-left:.5px solid var(--line)}
+.apphead.mini,body[data-v="valuta"] .apphead{flex-direction:row;align-items:center;gap:8px}
+.apphead.mini .topline,body[data-v="valuta"] .apphead .topline{display:contents}
+.apphead.mini .sub,body[data-v="valuta"] .apphead .sub{display:none}
+.apphead.mini .actcol,body[data-v="valuta"] .apphead .actcol{margin-left:auto;order:2}
+.apphead.mini .title{order:1}
+body[data-v="valuta"] .apphead .title{order:1}
+/* Niente informazioni a fondo pagina: lo stato di sincronizzazione compare solo se serve */
+.pane>.status{display:flex;align-items:center;gap:6px;margin:0 0 8px;padding:0;background:none;border:0;font:13px var(--ui);color:var(--muted)}
+.pane>.status.quiet{display:none}
+.pane>.status button{font:600 13px var(--ui);color:var(--suit);background:none;border:0;padding:8px 0;cursor:pointer}
+.searchbar{flex:none}
+#searchBtn{width:100%;min-height:52px}
+.searchtxt{margin:8px 0 0;font:14px/1.35 var(--ui);color:var(--muted)}
+.sprog{margin-top:12px}
+.strack{height:8px;border-radius:4px;background:var(--chip);overflow:hidden;position:relative}
+.sfill{height:100%;width:0;border-radius:4px;background:var(--suit);transition:width .6s ease}
+.sfill.ind{width:38%;position:absolute;left:-38%;animation:sind 1.4s ease-in-out infinite;transition:none}
+@keyframes sind{from{left:-38%}to{left:100%}}
+.srow{display:flex;justify-content:space-between;gap:12px;margin-top:6px;font:13px/1.35 var(--ui);color:var(--muted)}
+.srow span:last-child{flex:none;font-variant-numeric:tabular-nums}
+/* Registrata in trasmissione */
+li.joke .icon{width:40px}
+.icon.on{color:var(--ink)}
+li.joke .meta{min-width:0}
+li.joke .meta .note.rec{color:var(--ink);font-weight:600}
+#viewPesca #cardRec{align-self:center;border:0;min-height:48px;color:var(--ink);font-weight:500}
+#viewPesca #cardRec svg{width:20px;height:20px}
+#viewPesca #cardRec.on svg rect{fill:currentColor}
+/* Numeri e icone più grossi e ciccioni */
+.jrow{grid-template-columns:38px 1fr auto}
+li.joke .jn{font:400 22px/1 'Anton',Impact,sans-serif;letter-spacing:.02em;color:var(--suit);width:auto;padding-top:1px}
+.cbadge{min-width:20px;height:20px;border-radius:10px;font:800 13px/20px var(--ui);top:2px;right:0}
+.tabs .badge{font:800 12px/1 var(--ui);padding:3px 7px;min-width:22px;box-sizing:border-box}
+.card .pip{font:800 17px/1 var(--ui);letter-spacing:.02em}
+.rv-count{font:800 15px var(--ui)}
+.icon svg{width:26px;height:26px;stroke-width:2.2}
+.tabs svg{width:30px;height:30px;stroke-width:2.1}
+.tabs a,.tabs button{font-size:12px;font-weight:600}
+.actcol .navbtn svg{width:28px;height:28px;stroke-width:2.4}
+.search svg{width:26px;height:26px;stroke-width:2.4}
+.redraw svg{width:24px;height:24px;stroke-width:2.2}
+#viewPesca #cardCmt svg,#viewPesca #cardRec svg{width:24px;height:24px;stroke-width:2.2}
+.chk{width:28px;height:28px}
+li.joke.sel .chk::after{left:9px;top:4px;width:7px;height:13px;border-width:0 3px 3px 0}
+/* Menu delle voci */
+.secslot{display:flex;align-items:stretch;position:relative}
+#sec{flex:1;min-width:0}
+.tabmenu{flex:none;width:52px;border:0;padding:0 0 0 8px;display:grid;place-items:center;color:var(--suit);background:linear-gradient(90deg,transparent,var(--bg) 30%);cursor:pointer}
+.tabmenu svg{width:26px;height:26px}
+.tabmenu:active{opacity:.5}
+#tSheet{max-height:80svh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+#tAll{width:auto;min-width:84px}
+.tnote{margin:0 0 8px;font:14px/1.35 var(--ui);color:var(--muted)}
+.tlist{flex:1;min-height:0;overflow-y:auto;border-top:.5px solid var(--line);overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.trow{display:flex;align-items:center;gap:10px;min-height:56px;border-bottom:.5px solid var(--line);font-size:17px;cursor:pointer}
+.trow .tl{flex:1;min-width:0}
+.trow .tn{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.sw{-webkit-appearance:none;appearance:none;flex:none;width:51px;height:31px;margin:0;border-radius:16px;background:var(--line);position:relative;transition:background .2s;cursor:pointer}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.sw:checked{background:var(--suit)}
+.sw:checked::after{transform:translateX(20px)}
+/* Cerchio di avanzamento */
+.ring{width:56px;height:56px;flex:none;display:block}
+.ring .rt{fill:none;stroke:var(--line);stroke-width:5}
+.ring .rp{fill:none;stroke:var(--suit);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+.ring text{font:800 12px var(--ui);fill:var(--ink)}
+.ring .rk{fill:none;stroke:var(--suit);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.ring.spin .rg{transform-origin:22px 22px;animation:rspin 1s linear infinite}
+@keyframes rspin{to{transform:rotate(360deg)}}
+.applyring{flex:none;display:flex}
+.applybar{align-items:center}
+.sprog{display:flex;align-items:center;gap:14px}
+.sringwrap{flex:none;display:flex}
+.sprog .strack{display:none}
+.sprog .srow{flex:1;min-width:0;margin:0;flex-direction:column;align-items:flex-start;gap:2px;font-size:14px}
+.sprog .srow span:last-child{font-size:13px}
+/* Training */
+body[data-v="training"] .apphead .title .t1{font-size:40px}
+body[data-v="training"] .apphead .title .t2{font-size:16px;margin-top:-6px}
+body[data-v="training"] .apphead{flex-direction:row;align-items:center;gap:8px}
+body[data-v="training"] .apphead .topline{display:contents;margin-top:0}
+body[data-v="training"] .apphead .sub{display:none}
+body[data-v="training"] .apphead .actcol{margin-left:auto;order:2}
+body[data-v="training"] .apphead .title{order:1}
+#viewTraining{display:flex;flex-direction:column;gap:12px}
+.tr-head{flex:none}
+.tr-stat{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;font:700 15px var(--ui)}
+.tr-stat span:last-child{color:var(--muted);font-weight:500}
+.tr-body{flex:1;min-height:0;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain}
+.tr-card{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:8px 0}
+.tr-meta{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font:500 14px var(--ui)}
+.tr-dots i{display:inline-block;width:10px;height:10px;margin-left:5px;border-radius:50%;background:var(--line)}
+.tr-dots i.on{background:var(--suit)}
+.tr-cue{margin:0;font:700 clamp(26px,7.6vw,32px)/1.25 var(--ui);letter-spacing:-.01em;-webkit-user-select:text;user-select:text}
+.tr-cue .gap{color:var(--muted)}
+.tr-cue .m{color:var(--muted);font-weight:600}
+.tr-ask{margin:0;color:var(--muted);font:500 16px/1.35 var(--ui)}
+.tr-actions{flex:none;display:flex;gap:10px;padding-top:12px}
+.tr-btn{flex:1;min-height:62px;border-radius:14px;border:1.5px solid var(--line);background:none;color:var(--ink);font:800 19px var(--ui);cursor:pointer}
+.tr-btn.no{color:var(--suit);border-color:var(--suit)}
+.tr-btn.ok{background:var(--suit);color:var(--bg);border-color:var(--suit)}
+.tr-btn:active{opacity:.6}
+.tr-reveal{width:100%;min-height:62px;font-size:19px}
+.tr-empty{flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;text-align:left}
+.tr-empty p{margin:0;color:var(--muted);font:17px/1.4 var(--ui)}
+.tr-empty .tr-big{color:var(--ink);font:800 30px/1.15 var(--ui);letter-spacing:-.01em}
+.tr-link{align-self:flex-start;background:none;border:0;padding:12px 0;color:var(--suit);font:600 17px var(--ui);cursor:pointer}
+.grow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 14px;margin-bottom:6px;border-bottom:.5px solid var(--line)}
+.gl{font:700 17px var(--ui)}
+.gs{font:14px/1.3 var(--ui);color:var(--muted)}
+#gSheet{max-height:88svh;overflow-y:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+#gSheet .fld{margin-bottom:12px}
+#gSheet input,#gSheet select{width:100%;min-height:48px;box-sizing:border-box;font-size:17px}
+</style>
+
+<div class="wrap" id="app">
+  <header class="apphead" id="navbar">
+    <h1 class="title"><span class="t1">Battute</span><span class="t2">Master ★</span></h1>
+    <div class="topline"><p class="sub"><span id="tot">— battute</span></p><div class="actcol"><button type="button" class="navbtn" id="addOpen" aria-label="Aggiungi una battuta"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button type="button" class="navbtn selbtn" id="selBtn" aria-label="Seleziona"><span class="si"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.5 2.5 4.5-5"/></svg></span><span class="st">Fine</span></button></div></div>
+  </header>
+
+
+  <div id="viewElenco" class="view">
+  <div class="tools">
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" id="q" placeholder="Cerca una battuta" aria-label="Cerca nelle battute" autocomplete="off">
+    </label>
+    <div class="secslot" id="secSlot"><div class="tabrow" id="sec" role="tablist" aria-label="Sezioni"></div><button type="button" class="tabmenu" id="tabMenu" aria-label="Scegli quali voci mostrare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button></div>
+  </div>
+
+  <div class="pane" id="pane">
+  <span class="status" id="status"><span class="dot"></span><span id="statusText">Copia salvata</span></span>
+    <div class="countline" id="countline" hidden><span class="count" id="count"></span></div>
+
+  <div class="rmbanner" id="rmBanner" hidden><span id="rmTxt"></span><button type="button" id="rmRetry">Riprova ora</button><button type="button" id="rmUndo">Annulla</button></div>
+  <main id="list"></main>
+  <label class="srcfilter" hidden><span>Solo le battute da</span><select id="src" aria-label="File di provenienza"><option value="">Tutti i file</option></select></label>
+    <footer hidden>
+    <a class="cell" href="https://docs.google.com/document/d/1G-x44hzzeRuwVhSuyaEdNBlwxgDSolRn8a4JnHarNf4/edit" target="_blank" rel="noopener"><span>Apri il Google Doc</span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></a>
+    <span id="upd"></span>
+    <span id="fonti"></span>
+    <span>Le stelline della scaletta restano salvate solo su questo dispositivo.</span>
+  </footer>
+  </div>
+  </div>
+
+  <section id="viewPesca" class="view" hidden>
+    <div class="tabrow" id="drawFromTabs" role="tablist" aria-label="Pesca da">
+      <button type="button" role="tab" data-from="all" aria-selected="true">Tutte</button>
+      <button type="button" role="tab" data-from="star" aria-selected="false">Scaletta</button>
+    </div>
+    <div class="pescata" aria-live="polite">
+      <div class="card" id="card">
+        <span class="pip" id="pip"></span>
+        <p class="txt" id="cardTxt"></p>
+        <div class="meta" id="cardMeta"></div>
+      </div>
+      <button class="redraw" id="draw" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg>Pescane un'altra</button>
+      <button class="redraw" id="cardCmt" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8.5 8.5 0 0 1-12.2 7.6L3.5 21l1.4-4.9A8.5 8.5 0 1 1 21 12z"/></svg><span id="cardCmtLbl">Commenti</span></button>
+      <button class="redraw" id="cardRec" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg><span id="cardRecLbl">Segna come registrata</span></button>
+    </div>
+  </section>
+
+  <section id="viewTraining" class="view" hidden>
+    <div class="tr-head">
+      <div class="tr-stat" id="trStat"></div>
+      <div class="strack"><div class="sfill" id="trBar"></div></div>
+    </div>
+    <div class="tr-body" id="trBody"></div>
+  </section>
+
+  <section id="viewValuta" class="view" hidden>
+    <div class="vhead">
+      <h2>Battute nuove da valutare</h2>
+      <p>Premi «Cerca nuove battute ora»: l'IA legge i tuoi file del Drive e mette qui, una alla volta, le battute che non sono ancora nel master. Tieni, scarta o rimanda; puoi correggere testo e sezione prima di tenerle.</p>
+    </div>
+    <div class="searchbar">
+      <button class="btn solid" id="searchBtn" type="button">Cerca nuove battute ora</button>
+      <p class="searchtxt" id="searchTxt" hidden></p>
+      <button class="tr-link" id="gOpen" type="button">Impostazioni Google e IA</button>
+      <div class="sprog" id="sProg" hidden>
+        <span class="sringwrap" id="sRing"></span>
+      <div class="strack"><div class="sfill" id="sFill"></div></div>
+        <div class="srow" role="status"><span id="sPhase"></span><span id="sTime">0:00</span></div>
+      </div>
+    </div>
+    <div class="applybar" id="applyBar" hidden>
+      <span class="applyring" id="applyRing" hidden></span>
+      <span id="applyTxt"></span>
+      <button class="btn solid" id="applyBtn" type="button">Porta nel Google Doc</button>
+    </div>
+    <div id="rv" class="rv" hidden>
+      <article class="rv-card" id="rvCard" aria-live="polite">
+        <span class="rv-stamp keep" id="rvStampKeep">Tieni</span>
+        <span class="rv-stamp drop" id="rvStampDrop">Scarta</span>
+        <div class="rv-head"><span class="rv-src" id="rvSrc"></span><span class="rv-count" id="rvCount"></span></div>
+        <p class="rv-txt" id="rvTxt"></p>
+        <textarea id="rvEdit" aria-label="Testo per il master" rows="3" hidden></textarea>
+        <button class="rv-link" id="rvEditBtn" type="button">Modifica il testo</button>
+        <div id="rvNotes" class="rv-notes"></div>
+        <label class="fld"><span>Sezione del master</span><select id="rvSec"></select></label>
+      </article>
+      <div class="rv-actions">
+        <button class="rv-btn drop" id="rvDrop" type="button">✕ Scarta</button>
+        <button class="rv-btn later" id="rvLater" type="button">Più tardi</button>
+        <button class="rv-btn keep" id="rvKeep" type="button">✓ Tieni</button>
+      </div>
+      <p class="rv-hint">Puoi anche trascinare la carta: a destra la tieni, a sinistra la scarti.</p>
+    </div>
+    <div class="rv-undo" id="rvUndo" hidden><span id="rvUndoTxt"></span><button class="rv-link" id="rvUndoBtn" type="button">Annulla</button></div>
+    <p class="empty" id="queueEmpty">Niente da valutare. Le prossime battute nuove arriveranno con il prossimo giro di ricerca.</p>
+    <details class="add" id="later" hidden>
+      <summary><span class="sumt">Rimandate</span><span class="sumh" id="laterN"></span><span class="chev" aria-hidden="true">▾</span></summary>
+      <div class="addbody" id="laterList"></div>
+    </details>
+  </section>
+
+</div>
+<div class="toast" id="toast" role="status"></div>
+  <nav class="tabs" aria-label="Viste">
+    <a href="#elenco" data-view="elenco" id="tabElenco"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M5 6h.01M5 12h.01M5 18h.01"/></svg><span>Elenco</span></a>
+    <a href="#pesca" data-view="pesca" id="tabPesca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="12" height="15" rx="2"/><path d="M8 3h9a3 3 0 0 1 3 3v10"/></svg><span>Pesca</span></a>
+    <button type="button" id="tabScaletta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.8z"/></svg><span>Scaletta</span></button>
+    <a href="#training" data-view="training" id="tabTraining"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="3" height="8" rx="1"/><rect x="17" y="8" width="3" height="8" rx="1"/><path d="M7 12h10M2 10.5v3M22 10.5v3"/></svg><span>Training</span></a>
+    <a href="#valuta" data-view="valuta" id="tabValuta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13l2-8h12l2 8v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M4 13h4l1 2h6l1-2h4"/></svg><span>Valuta</span><span class="badge" id="qBadge" hidden>0</span></a>
+  </nav>
+<div class="selbar" id="selbar"><button type="button" id="selAll">Tutte</button><span class="selc" id="selCount">0 selezionate</span><button type="button" class="danger" id="selRm" disabled>Rimuovi</button></div>
+<div class="sheet-back" id="sheetBack"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Nuova battuta">
+  <div class="grab"></div>
+  <div class="sheethead"><button type="button" class="txtbtn" id="sheetClose">Annulla</button><span class="sheettitle">Nuova battuta</span><span class="sheetsp"></span></div>
+  <form id="addForm" class="addbody" novalidate>
+      <label class="fld"><span>Battuta</span><textarea id="newTxt" rows="3" placeholder="Scrivila come la diresti sul palco" required></textarea></label>
+      <div class="row">
+        <label class="fld grow"><span>Sezione</span><select id="newSec"></select></label>
+        <label class="fld grow"><span>Nota (facoltativa)</span><input id="newNote" type="text" placeholder="Es. da provare al prossimo open mic"></label>
+      </div>
+      <div class="row"><button class="btn solid" id="addBtn" type="submit">Aggiungi al master</button><span class="addmsg" id="addMsg" role="status"></span></div>
+    </form>
+</div>
+<div class="sheet" id="cSheet" role="dialog" aria-modal="true" aria-label="Commenti">
+  <div class="grab"></div>
+  <div class="sheethead"><span class="sheetsp"></span><span class="sheettitle">Commenti</span><button type="button" class="txtbtn r" id="cClose">Chiudi</button></div>
+  <p class="cjoke" id="cJoke"></p>
+  <div class="clist" id="cList"></div>
+  <form class="cform" id="cForm" novalidate>
+    <textarea id="cTxt" rows="1" placeholder="Aggiungi un commento" aria-label="Nuovo commento"></textarea>
+    <button class="csend" id="cSend" type="submit" aria-label="Invia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></svg></button>
+  </form>
+</div>
+<div class="sheet" id="dSheet" role="dialog" aria-modal="true" aria-label="Rimuovi dal master">
+  <div class="grab"></div>
+  <p class="dtitle" id="dTitle"></p>
+  <p class="dtxt" id="dTxt"></p>
+  <p class="dnote">Vengono tolte subito anche dal Google Doc. Se qualcosa non riesce restano in attesa e puoi riprovare dall'elenco.</p>
+  <button type="button" class="btn" id="dGo">Rimuovi dal master</button>
+  <button type="button" class="btn ghost" id="dNo">Annulla</button>
+</div>
+<div class="sheet" id="gSheet" role="dialog" aria-modal="true" aria-label="Impostazioni">
+  <div class="grab"></div>
+  <div class="sheethead"><span class="sheetsp"></span><span class="sheettitle">Impostazioni</span><button type="button" class="txtbtn r" id="gDone">Salva</button></div>
+  <div class="grow"><div><div class="gl">Google</div><div class="gs" id="gState"></div></div><button type="button" class="btn" id="gBtn">Accedi con Google</button></div>
+  <label class="fld"><span>Chiave API di Anthropic</span><input type="password" id="gKey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…"></label>
+  <label class="fld"><span>Modello</span><select id="gModel"><option value="claude-sonnet-5-5">Claude Sonnet 5.5 (consigliato)</option><option value="claude-haiku-5-5">Claude Haiku 5.5 (più economico)</option><option value="claude-opus-5-5">Claude Opus 5.5 (più accurato)</option></select></label>
+  <p class="tnote">La chiave resta solo su questo telefono e viene usata solo quando premi «Cerca nuove battute ora». Usa una chiave con un limite di spesa.</p>
+</div>
+<div class="sheet" id="tSheet" role="dialog" aria-modal="true" aria-label="Voci da mostrare">
+  <div class="grab"></div>
+  <div class="sheethead"><button type="button" class="txtbtn" id="tAll">Ripristina</button><span class="sheettitle">Voci da mostrare</span><button type="button" class="txtbtn r" id="tDone">Fine</button></div>
+  <p class="tnote">Scegli quali schede compaiono sopra l'elenco. Le battute restano tutte nel master.</p>
+  <div class="tlist" id="tList"></div>
+</div>
+
+<script src="config.js"></script>
+<script src="google.js"></script>
+<script>
+const SNAPSHOT = "# **Battute master**\n\nRaccolta di tutte le battute dei file di Nikolas. Ogni battuta ha il link al file da cui proviene. Ultimo aggiornamento: 29 ottobre 2026.\n\nFonti: [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit) · [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view) · [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view) · [Telefono Ale Parenti](https://docs.google.com/document/d/1pTuKnOG51uMA4u9wbk8CY0W98Y09-jC9cbfSkPCJx7k/edit) · [Monologo | Nikolas Albanese](https://docs.google.com/document/d/1W2yPoContjlzioJTouH6OCSh78s8M0AYW6bIBHYnWF4/edit) · [Monologo - One Man Show | Nikolas Albanese](https://docs.google.com/document/d/1KO0-7b77HJxR8uck6LNgsQ3a3jIOyykEHBc8fNdvhI8/edit) · [Francesco Scimemi](https://drive.google.com/file/d/10K1hi5AXVEGovf_n7LSurb-X3IVlxVgk/view) · [Steven Wright (riferimento)](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view) · [Fool Optional](https://drive.google.com/file/d/1odRYyJKWkt5QIELC55Wy2O17VCUSgRfB/view) · [Fantasmagorie](https://drive.google.com/file/d/1AKguoDZfUVEIXBc9-kWWq212JnYnujtc/view) · [Egg Bag](https://drive.google.com/file/d/1-TzdTy0IpcGlzX9jNp50daqaxvjniWnr/view)\n\n## **1. Magia e mestiere del mago**\n\n  - Ho scoperto una spezia che ti fa ballare, si chiama \"pepeeeepepepe\", disco samba — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - A tutti quelli che mi dicono che il mazzo è truccato rispondo che ha compiuto 18 anni ed è libero di fare ciò che vuole — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - A fare il mago si frequenta gente strana: ho fatto una festa e il fachiro mi ha chiesto lo zucchero affilato — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - Ho inventato l'orologio che ti fa stare attento: è l'orolOCIO — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - Ci sono molti gran bei giochi di magia... sfortunatamente quello che segue non è uno di quelli! — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Vado di fretta perché ho uno spettacolo a Settembre — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Questo gioco l'ho imparato da... che l'aveva imparato da... all'inizio era un gioco con i dadi (mentre si fa un gioco con anelli) — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Ho capito di essere diverso quando la prima volta che ho fatto comparire una colomba era completa: aveva il becco, le ali, le mandorle... — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Citazioni in rima dal \"Grande libro della magia\", per esempio \"Se m'interrompi un'altra volta, t'ammazzo la zia!\" (nota Nik: troppo costruita) — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Credo di essere un mago diverso dagli altri perchè di solito quando la gente vede un mago dice “Ma come fai?!”, quando vedono me dicono “Ma perchè lo fai?”. — [Monologo | Nikolas Albanese](https://docs.google.com/document/d/1W2yPoContjlzioJTouH6OCSh78s8M0AYW6bIBHYnWF4/edit)\n  - Come faccio a farvi capire che tipo di mago sono? prendi copperfield ma immagina di averlo preso su aliexpress. — [Monologo | Nikolas Albanese](https://docs.google.com/document/d/1W2yPoContjlzioJTouH6OCSh78s8M0AYW6bIBHYnWF4/edit)\n  - È una città a metà, un mago può sentirsi a casa li perché se divide una donna in due li è normale. — [Francesco Scimemi](https://drive.google.com/file/d/10K1hi5AXVEGovf_n7LSurb-X3IVlxVgk/view)\n  - quando mio nonno si esibiva la nonna gli faceva da assistente. Lei usciva sul palcoscenico completamente nuda con gli stivali neri, i guanti neri e faceva la parte del cinque di picche. Una cosa che oggi sarebbe impensabile. — [Fool Optional](https://drive.google.com/file/d/1odRYyJKWkt5QIELC55Wy2O17VCUSgRfB/view)\n  - io ho deciso di essere un mago femminista. basta con il classico gioco del mago che sega l’assistente io vorrei che fosse l’assistente a…. va beh scusate è uscita male. — [Fantasmagorie](https://drive.google.com/file/d/1AKguoDZfUVEIXBc9-kWWq212JnYnujtc/view)\n  - Avete presente quel gioco classico in cui un prestigiatore prende un foulard, copre la mano e non appena toglie il fazzoletto compare una colomba? Bene! se lo avete tutti presente non c’è bisogno di farvelo vedere. — [Egg Bag](https://drive.google.com/file/d/1-TzdTy0IpcGlzX9jNp50daqaxvjniWnr/view)\n  - Ho iniziato come giocoliere ma mi cadevano sempre le palle in terra. Poi ho provato con la magia per farle cadere al pubblico. — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - nell’ambiente maschile sono un mago di successo…riesco a liberarmi di qualsiasi fidanzata appena rompe i coglioni…questa tecnica l’ho chiamata excapologia… — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - Fare il mago non ti rende ricco…pensa che giro con una Panda talmente vecchia che la Fiat non la produce più…praticamente è una Panda in via di estinzione — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - perché quando un genitore ti ingaggia ti chiede “ma tu fai anche gli animali coi palloncini?”. No! cazzo centra? faccio il mago. “Allora non ti pago”. Pronti via, ecco qui gli animali coi palloncini. — [Fool Optional](https://drive.google.com/file/d/1odRYyJKWkt5QIELC55Wy2O17VCUSgRfB/view)\n\n## **2. Vita quotidiana e surreale**\n\n  - Ho visto una mantide che faceva la muta. Sssshhhhh — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - L'altro giorno m'han fatto la multa perché ho parcheggiato sui disabili... Ho contestato al vigile che non erano disabili... fino a quando non li ho investiti con la macchina — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - Quando sono sul divano e voglio stendere i piedi, schiocco le dita e puff — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - La propulsione necessaria a portare un razzo nello spazio fu sviluppata dagli scienziati studiando lo starnuto umano. Per questo si chiama NASA — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - L'altra sera ero seduto sulla tazza del water e ho avuto un'ispirazione... così è nato questo gioco — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Sono andato al cinema con il cibo da casa, mi hanno buttato fuori: al bar costa più il mangiare del biglietto, e poi era da tanto che non facevo una grigliata (quasi identica a una di Steven Wright, da verificare prima di usarla) — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Io credo nella vita dopo la morte: mia moglie ha lasciato il pollo nel frigo per due settimane e alla fine si muoveva da solo — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - L'altra notte ho sognato di mangiare un piatto di spaghetti... quando mi sono svegliato non avevo più la corda del pigiama — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Ho smesso di frequentare il corso di ipnosi perché mi addormentavo in classe — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - È difficile come cercare di vedere una zebra sulle strisce pedonali — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Siamo sempre stati una famiglia povera: mia madre cucinava solo con il dado, mangiavamo solo se usciva il 6 — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Vacanza low cost a Chernobyl: mi è piaciuta un sacco, ho fatto anche il bagno, ma da allora mi prude un capezzolo — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Stavo sposando una ragazza veggente... ma mi ha lasciato prima di incontrarmi — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Per anni ho detto ai miei genitori che avevo un mostro sotto al letto: mi hanno punito cambiandomi di posto con mio fratello sul letto a castello — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Ho comprato una macchina con la gobba. È una Toyota aygor — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - Ho sempre avuto un rapporto particolare con i miei genitori, specialmente con mia madre; credo di non essere mai stato il suo preferito nonostante sia figlio unico. — [Monologo | Nikolas Albanese](https://docs.google.com/document/d/1W2yPoContjlzioJTouH6OCSh78s8M0AYW6bIBHYnWF4/edit)\n  - Con mio padre invece era diverso, facevamo un sacco di cose insieme; per esempio lui ha sempre lavato la macchina con me, finchè non gli ho detto “ma non puoi usare una spugna come fanno tutti?”. — [Monologo | Nikolas Albanese](https://docs.google.com/document/d/1W2yPoContjlzioJTouH6OCSh78s8M0AYW6bIBHYnWF4/edit)\n  - Rho, sembra quasi che quello che ha deciso il nome della città si sia addormentato mentre lo scriveva, ci avete mai fatto caso? C’è mentre scriveva: Rozzano, Rovigo, Rovereto, rò…. — [Francesco Scimemi](https://drive.google.com/file/d/10K1hi5AXVEGovf_n7LSurb-X3IVlxVgk/view)\n  - È l’unica città al mondo in cui esistono ancora le mezze stagioni — [Francesco Scimemi](https://drive.google.com/file/d/10K1hi5AXVEGovf_n7LSurb-X3IVlxVgk/view)\n  - odio parlare con gli stupidi…preferisco parlare con gli strabici…almeno loro non hanno un solo punto di vista. — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - La mia nipotina si sente grande…ha 5 anni ma bisogna trattarla come un’adulta…l’altro giorno a tavola le ho detto: “Martina, fai la pappona!” E lei si è messa a far prostituire tutte le sue bambole… — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n  - Poi vivevamo in un quartiere molto periferico e a scuola ci davano da scrivere temi come “cosa farò se diventerò grande”. — [Fool Optional](https://drive.google.com/file/d/1odRYyJKWkt5QIELC55Wy2O17VCUSgRfB/view)\n\n## **3. Zittimenti**\n\n  - Più ti guardo, più mi sale l'autostima! — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Sei utile come il cordino di plastica sotto i sacchetti dell'immondizia — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Non so da dove vieni, ma so dove dovresti andare! — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Beati i sordi! — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Claudio, dall'inglese Cloud: sei come una nuvola, quando te ne vai la giornata migliora — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - (Biglietto da visita) Perché non mi mandi una mail così ne riparliamo? — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Non dimenticherò mai il giorno in cui ci siamo incontrati... purtroppo — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Ricordami un po' quando ho chiesto la tua opinione? (silenzio) Già, neanche io! — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Stanotte ho fatto un incubo: ho sognato di essere te — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Avresti potuto fare la comparsa a Chernobyl — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Fai una magia anche tu... sparisci! — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Sei più fastidioso dello SPID! — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Vuoi essere un buon conduttore? Allora fai il bagno con questa (estrarre una prolunga) — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Brava, intelligente, bella! Gli opposti si attraggono — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Consegnare una colla stick/attack dicendo \"è una nuova marca di burrocacao\" — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Sei mai stato in uno zoo? Voglio dire... come spettatore? — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - (Mazzo che gira sul dito) Guarda Paolo, come mi fai girare tu il mazzo, nessuno! — [Battute (Luca)](https://docs.google.com/document/d/1-VNbft98SkAae1QtqUEnou_u-HdkwS5x6OPCEZ-nDiE/edit)\n\n## **4. Interazione con il pubblico e il conduttore**\n\n  - Lancio tra il pubblico un pollo vestito da poliziotto per scegliere uno spettatore: \"Un agente sotto copertura: un polli-ziotto\" — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Lodovica, ti distrai facilmente, cambia ammorbidente... quello che uso io non mi fa dimenticare più niente: è concentrato! — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Il trucco c'è ma non si vede, come dice Terry, make-up artist, per giustificare il suo lavoro — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Gioco del limone/pesca: \"con l'ananas non ci sono riuscito, era ananascosto\" (nota Nik: troppi giochi di parole) — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Priceless: un medium con due sorelle, la minore Small e la maggiore Large — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Priceless: la magiacca, e il mago termoautonomo con giacche in pelleT (note Nik: troppo gioco di parole, non la capisco) — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Controllo tasche: \"le tasche internet, quelle con il wifi\" (nota Nik: troppo gioco di parole) — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - \"Mi dica un numero? 5... Esatto!\" — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Signorina le leggerò la mente: pensi al numero di telefono, 7 cifre... prime 3, ora le altre 3... fatto! Domani la chiamo! — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Fammi pensare, ti chiami Paola? No! Tua mamma si chiama Paola? No! Hai un'amica che si chiama Paola? (fino a conferma) — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Indichi uno del pubblico: \"Quante volte ti ho detto di non venire!\" — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Faccio sparire uno del pubblico (indicando una sedia vuota) — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - \"Lei è sicuro di quello che fa?\" (mentre si fa scegliere una carta) — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - \"Vince chi dirà il numero più alto... cominci lei\" — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - \"Lui ha una mente aperta... lo sento dagli spifferi!\" — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Estrai la pochette dalla giacca con attaccata una calza (e la usi per ipnotizzare) — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Una bella ragazza dallo psichiatra: \"non resisto a chi parla inglese\" — \"Oh, yes... I understand!\" — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - sai chi ti saluta? sto coriandolo — [Telefono Ale Parenti](https://docs.google.com/document/d/1pTuKnOG51uMA4u9wbk8CY0W98Y09-jC9cbfSkPCJx7k/edit)\n  - Bene, arrivati a questo punto quanti pensano che i miei genitori siano cugini? Quanti hanno capito la battuta sui cugini? — [Monologo | Nikolas Albanese](https://docs.google.com/document/d/1W2yPoContjlzioJTouH6OCSh78s8M0AYW6bIBHYnWF4/edit)\n  - Visto come sono andati i miei spettacoli precedenti ti lascio questo, non si sa mai, dentro ci sono le mie ultime volontà. — [Francesco Scimemi](https://drive.google.com/file/d/10K1hi5AXVEGovf_n7LSurb-X3IVlxVgk/view)\n  - ho fatto lo stesso gioco una settimana fa al carcere di san vittore, quindi chiedo scusa a quelli che stasera lo vedono di nuovo. Non è una battuta, ho fatto davvero uno spettacolo in un carcere, pensate che è piaciuto così tanto che la gente non se ne andava più. — [Fantasmagorie](https://drive.google.com/file/d/1AKguoDZfUVEIXBc9-kWWq212JnYnujtc/view)\n  - Io sono un grande mentalista: vedo il futuro, leggo la mente. Tu ti chiami? Giuseppe?! Lo sapevo… — [Fantasmagorie](https://drive.google.com/file/d/1AKguoDZfUVEIXBc9-kWWq212JnYnujtc/view)\n  - Comunque questo applauso da presa per il culo non mi è piaciuto. — [Fantasmagorie](https://drive.google.com/file/d/1AKguoDZfUVEIXBc9-kWWq212JnYnujtc/view)\n  - Poi girati spalle al pubblico e mostraci la parte migliore di te. — [Fantasmagorie](https://drive.google.com/file/d/1AKguoDZfUVEIXBc9-kWWq212JnYnujtc/view)\n\n## **5. Gag visive e routine**\n\n  - Gag palloncini: maiale morto (salsiccia), lombrico, lombrico incinta, qualunque animale (spermatozoo) — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Aeroplanino di carta che va verso il pubblico per scegliere uno spettatore e torna sempre a te; la terza volta lo appallottoli e lo lanci (visto da Ali Bongo) — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Mazzo che rimpicciolisce (non rimpicciolisce mai), mostri la carta di fianco: una carta grande — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Sigarette: ne fai sparire una inalandola, la rimetti nel pacchetto e agiti il pacchetto — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Mazzo invisibile: carta immaginaria, \"ti ricorda la tua ultima storia d'amore?\", rimescolata immaginaria (versione spinta, da valutare) — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - \"Grazie di cuore: quadri, fiori... picche!\" — [idee, gag e battute](https://drive.google.com/file/d/1t7i93n_qEU17EdUi6ybclybIHd-oWvLF/view)\n  - Gag della cascata di carte dietro la schiena dopo la cascata vera davanti — [Proposte battute 27.11.2025](https://drive.google.com/file/d/1LNhUetoP_JR5L5oNua_gBI_pT6thR55X/view)\n  - Posso fare un piccolo strappo per rendere ancora più unica la banconota? si vede bene da lontano? perchè se non si vede possiamo fare così. (distruggo la banconota) — [Monologo - One Man Show | Nikolas Albanese](https://docs.google.com/document/d/1KO0-7b77HJxR8uck6LNgsQ3a3jIOyykEHBc8fNdvhI8/edit)\n  - Adesso spiego come funziona: vi serve un foulard, una mano e un dito in più… — [Fantasmagorie](https://drive.google.com/file/d/1AKguoDZfUVEIXBc9-kWWq212JnYnujtc/view)\n\n## **6. Materiale di riferimento: Steven Wright (non è materiale tuo)**\n\n  - Autostop su un camion con 20 macchine nuove, tutti multati per eccesso di velocità — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)\n  - Foto della patente sfocata di proposito — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)\n  - Giuria al processo delle 6000 formiche travestite da chicchi di riso — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)\n  - Cartina dell'Italia a grandezza naturale (1 km = 1 km): \"dove vivo? E5\" — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)\n  - Piede che si addormenta di giorno e resta sveglio tutta la notte — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)\n  - Il cane di nome Fermo — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)\n  - Parcheggiare in centro e contare quante persone chiedono se me ne sto andando — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)\n  - Il diario: \"giorno 1: ancora stanco per il trasloco\" — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)\n  - Cinema con il cibo da casa e la grigliata — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)\n  - L'elicottero legato a una corda e lasciato acceso — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)\n  - L'igienista dentale carina e la scatola di biscotti in sala d'attesa — [Steven Wright](https://drive.google.com/file/d/1khMQMzvvkkkr2dJsueqUy1FT9HnluHJf/view)";
+const DOC_ID = "1G-x44hzzeRuwVhSuyaEdNBlwxgDSolRn8a4JnHarNf4";
+const ICON_MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>';
+const ICON_MIC_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>';
+const ICON_CMT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8.5 8.5 0 0 1-12.2 7.6L3.5 21l1.4-4.9A8.5 8.5 0 1 1 21 12z"/></svg>';
+const ICON_SEND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></svg>';
+const ICON_STAR = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.8z"/></svg>';
+const ICON_STAR_O = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.8z"/></svg>';
+const ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>';
+const RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"], SUITS = ["♠","♥","♦","♣"];
+
+const unesc = s => s.replace(/\\([!*_#\[\]()\\`~>|-])/g, "$1");
+function parse(md){
+  const out = {updated:"", sources:[], sections:[]};
+  let cur = null;
+  for (const raw of md.split("\n")){
+    const line = raw.replace(/\s+$/,"");
+    let m;
+    if (!line.trim()) continue;
+    if ((m = line.match(/^##\s+\**(.+?)\**$/))){
+      const t = unesc(m[1]); const n = t.match(/^(\d+)\.\s*(.*)$/);
+      cur = {num: n ? n[1] : "", title: n ? n[2] : t, ref: /riferimento/i.test(t), jokes: []};
+      out.sections.push(cur); continue;
+    }
+    if (/^#\s/.test(line)) continue;
+    if ((m = line.match(/^\s*[-*]\s+(.*)$/)) && cur){
+      let body = m[1], src = "", url = "";
+      const lm = body.match(/^(.*)\s+—\s+\[([^\]]+)\]\(([^)]+)\)\s*$/);
+      if (lm){ body = lm[1]; src = unesc(lm[2]); url = lm[3]; }
+      body = unesc(body);
+      let note = "";
+      const nm = body.match(/\s*\((not[ae] Nik[^)]*)\)\s*$/i);
+      if (nm){ note = nm[1]; body = body.slice(0, nm.index); }
+      cur.jokes.push({text: body.trim(), note, src, url, sec: cur});
+      continue;
+    }
+    if ((m = line.match(/Ultimo aggiornamento:\s*([^.]+)/))) out.updated = m[1].trim();
+    if (/^Fonti:/.test(line)){
+      for (const fm of line.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)) out.sources.push({name: unesc(fm[1]), url: fm[2]});
+    }
+  }
+  return out;
+}
+
+let data = parse(SNAPSHOT);
+let pending = [], keptRows = [], addedRows = [], commentRows = [], cKey = null, rmRows = [], selMode = false, selected = new Set(), rmPending = [], rmApplied = null, recRows = [], searchAt = 0, searchBase = 0, searchTimer = null, sReq = null, searchReqId = null, sSeen = 0, sLast = 0, sHide = null, hiddenTabs = new Set(), allTabs = [];
+let view = data.sections;
+const NEW_SEC = "Nuova sezione (decide Claude)";
+function rebuild(){
+  const have = new Set(data.sections.flatMap(s => s.jokes.map(j => norm(j.text))));
+  const secs = data.sections.map(s => ({...s, jokes: [...s.jokes]}));
+  let extra = null;
+  for (const p of pending){
+    if (have.has(norm(p.testo))) continue;
+    let s = secs.find(x => !x.ref && (x.num ? x.num + ". " : "") + x.title === p.sezione);
+    if (!s){ if (!extra) extra = {num:"", title:"Nuove, sezione da decidere", ref:false, jokes:[]}; s = extra; }
+    s.jokes.push({text: p.testo, note: p.nota ? "nota Nik: " + p.nota : "", src: "Aggiunta da Nik", url: "", pending: true, sec: s});
+  }
+  const gone = removedKeys();
+  if (gone.size) for (const s of secs) s.jokes = s.jokes.filter(j => j.pending || !gone.has(keyOf(j.text)));
+  for (const s of secs) for (const j of s.jokes) j.sec = s;
+  if (extra){ const i = secs.findIndex(s => s.ref); secs.splice(i < 0 ? secs.length : i, 0, extra); }
+  view = secs;
+}
+const state = {q:"", sec:"all", src:""};
+let drawFrom = "all";
+let stars = new Set();
+try { stars = new Set(JSON.parse(localStorage.getItem("bm-scaletta") || "[]")); } catch(e){}
+const saveStars = () => { try { localStorage.setItem("bm-scaletta", JSON.stringify([...stars])); } catch(e){} };
+
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+function hi(text){
+  const t = esc(text); if (!state.q) return t;
+  const q = norm(state.q); const n = norm(text);
+  let res = "", i = 0, idx;
+  if (n.length !== text.length) return t;
+  while ((idx = n.indexOf(q, i)) !== -1){ res += esc(text.slice(i, idx)) + "<mark>" + esc(text.slice(idx, idx+q.length)) + "</mark>"; i = idx + q.length; }
+  return res + esc(text.slice(i));
+}
+const keyOf = t => norm(t).replace(/[^a-z0-9]+/g, " ").trim();
+function addedMap(){
+  const m = new Map();
+  const put = (text, a, b) => {
+    if (!text) return;
+    const k = keyOf(text), t = [Date.parse(a) || 0, Date.parse(b) || 0], o = m.get(k);
+    if (!o || t[0] > o[0] || (t[0] === o[0] && t[1] > o[1])) m.set(k, t);
+  };
+  keptRows.forEach(r => put(r.testoFinale || r.testo, r.applicataIl || r.decisaIl || r.aggiunta, r.decisaIl || r.aggiunta));
+  addedRows.forEach(r => put(r.testo, r.aggiunta, r.aggiunta));
+  return m;
+}
+function addedTs(j, m){
+  const k = keyOf(j.text); if (m.has(k)) return m.get(k);
+  const h = k.slice(0, 40);
+  if (h.length >= 20) for (const [kk, v] of m) if (kk.startsWith(h)) return v;
+  return null;
+}
+function visible(){
+  const q = norm(state.q), am = state.sec === "new" ? addedMap() : null, rs = (state.sec === "rec" || state.sec === "todo") ? new Set(recRows.map(r => r.chiave)) : null;
+  return view.flatMap(s => s.jokes).filter(j => {
+    if (state.sec === "star" && !stars.has(j.text)) return false;
+    if (state.sec === "new" && !addedTs(j, am)) return false;
+    if (state.sec === "rec" && !rs.has(keyOf(j.text))) return false;
+    if (state.sec === "todo" && (j.sec.ref || rs.has(keyOf(j.text)))) return false;
+    if (state.sec !== "all" && state.sec !== "star" && state.sec !== "new" && state.sec !== "rec" && state.sec !== "todo" && j.sec.num + j.sec.title !== state.sec) return false;
+    if (state.src && j.src !== state.src) return false;
+    if (q && !norm(j.text + " " + j.note + " " + j.src).includes(q)) return false;
+    return true;
+  });
+}
+function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), 1600); }
+async function copy(text, msg){
+  try { await navigator.clipboard.writeText(text); toast(msg || "Copiata"); }
+  catch(e){ const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); toast(msg || "Copiata"); }catch(_){ toast("Seleziona il testo e copialo a mano"); } ta.remove(); }
+}
+
+function renderChrome(){
+  const own = view.filter(s => !s.ref).reduce((a,s) => a + s.jokes.length, 0);
+  $("tot").textContent = own + " battute, da dire ad alta voce"; $("upd").textContent = data.updated ? "Aggiornato il " + data.updated : "";
+  const chips = [{k:"all", label:"Tutte", n: view.reduce((a,s)=>a+s.jokes.length,0)}]
+    .concat([{k:"new", label:"Nuove", n:0}, {k:"todo", label:"Da registrare", n:0}, {k:"rec", label:"Registrate", n:0}])
+    .concat(view.map(s => ({k: s.num + s.title, label: s.ref ? "Steven Wright (rif.)" : s.title, n: s.jokes.length})))
+    .concat([{k:"star", label:"★ Scaletta", n: stars.size, star:true}]);
+  const secSel = $("sec");
+  allTabs = chips.filter(c => !c.star);
+  let shown = allTabs.filter(c => !hiddenTabs.has(c.k)); if (!shown.length) shown = [allTabs[0]];
+  if (state.sec !== "star" && !shown.some(c => c.k === state.sec)) state.sec = shown[0].k;
+  secSel.innerHTML = shown.map(c => `<button type="button" role="tab" data-k="${esc(c.k)}" aria-selected="${c.k === state.sec}">${esc(c.k === "all" ? "Tutte" : c.label)}</button>`).join("");
+  const srcs = [...new Set(view.flatMap(s => s.jokes.map(j => j.src)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"it"));
+  const sel = $("src"), keep = state.src;
+  sel.innerHTML = '<option value="">Tutti i file</option>' + srcs.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  sel.value = srcs.includes(keep) ? keep : ""; state.src = sel.value;
+  $("fonti").innerHTML = data.sources.length ? "Fonti: " + data.sources.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a>`).join(" · ") : "";
+}
+function renderList(){
+  const vis = new Set(visible());
+  const idxMap = new Map(); view.flatMap(s => s.jokes).forEach((j, i) => idxMap.set(j, i + 1));
+  $("count").textContent = vis.size === 1 ? "1 battuta" : vis.size + " battute";
+  $("countline").hidden = !(state.q || state.src || state.sec !== "all");
+  const am = state.sec === "new" ? addedMap() : null;
+  const cmap = commentMap(), rmap = recMap();
+  const fmt = t => t && t[0] ? new Date(t[0]).toLocaleDateString("it-IT", {day: "numeric", month: "short"}) : "";
+  const li = j => {
+    const on = stars.has(j.text), when = am ? fmt(addedTs(j, am)) : "", nc = cmap.get(keyOf(j.text)) || 0, rc = rmap.get(keyOf(j.text));
+    return `<li class="joke${selected.has(j.text)?' sel':''}"${j.pending?' data-pending="1"':''} data-t="${esc(j.text)}"><div class="jrow"><span class="chk" aria-hidden="true"></span><span class="jn">${idxMap.get(j)}</span><p class="txt">${hi(j.text)}</p><div class="meta">${j.url?`<a href="${esc(j.url)}" target="_blank" rel="noopener">${esc(j.src)}</a>`:esc(j.src)}${when?`<span class="note">aggiunta il ${esc(when)}</span>`:''}${rc?`<span class="note rec">Registrata</span>`:''}${j.note?`<span class="note">${esc(j.note)}</span>`:''}${j.pending?'<span class="pend">In arrivo nel Google Doc</span>':''}</div><div class="acts"><button class="icon${rc?' on':''}" type="button" data-rec="${esc(j.text)}" aria-pressed="${!!rc}" aria-label="${rc?'Registrata: tocca per togliere':'Segna come registrata in trasmissione'}">${rc?ICON_MIC_ON:ICON_MIC}</button><button class="icon${nc?' has':''}" type="button" data-comment="${esc(j.text)}" aria-label="${nc?nc+' commenti':'Commenti'}">${ICON_CMT}${nc?`<span class="cbadge">${nc}</span>`:''}</button><button class="icon" type="button" data-copy="${esc(j.text)}" aria-label="Copia la battuta">${ICON_COPY}</button><button class="icon" type="button" data-star="${esc(j.text)}" aria-pressed="${on}" aria-label="${on?'Togli dalla scaletta':'Metti in scaletta'}">${on?ICON_STAR:ICON_STAR_O}</button></div></div>${j.pending?'':'<button class="swipe" type="button" data-swipe aria-label="Rimuovi dal master">Rimuovi</button>'}</li>`;
+  };
+  let html;
+  if (state.sec === "new"){
+    const items = [...vis].map(j => ({j, t: addedTs(j, am)})).sort((a, b) => (b.t[0] - a.t[0]) || (b.t[1] - a.t[1]));
+    const own = view.filter(s => !s.ref).reduce((a, s) => a + s.jokes.length, 0);
+    const older = own - items.filter(x => !x.j.sec.ref).length;
+    html = items.length ? `<ol class="jokes">${items.map(x => li(x.j)).join("")}</ol>` + (older > 0 && !state.q && !state.src ? `<p class="refnote" style="margin-top:14px">Le altre ${older} battute del master sono precedenti e non hanno una data di aggiunta.</p>` : "") : "";
+  } else {
+    html = view.map(s => {
+      const js = s.jokes.filter(j => vis.has(j)); if (!js.length) return "";
+      return `<section class="sec${s.ref?' ref':''}"><h3><span class="num">${esc(s.num)}</span>${esc(s.title)}</h3>${s.ref?'<p class="refnote">Solo come riferimento: non è materiale di Nikolas.</p>':''}<ol class="jokes">${js.map(li).join("")}</ol></section>`;
+    }).join("");
+  }
+  let extra = "";
+  if (state.sec === "star" && stars.size) extra = `<div class="row" style="margin-bottom:12px"><button class="chip" type="button" id="copyScaletta">Copia la scaletta</button><button class="chip" type="button" id="clearScaletta">Svuota la scaletta</button></div>`;
+  const emptyMsg = state.sec === "star" ? "La scaletta è vuota. Tocca la stellina accanto a una battuta per aggiungerla." : state.sec === "rec" ? "Nessuna battuta segnata come registrata. Tocca il microfono accanto a una battuta." : state.sec === "todo" ? "Hai segnato tutte le battute come registrate." : state.sec === "new" ? "Ancora nessuna battuta con una data di aggiunta. Le prossime che tieni o aggiungi compariranno qui, la più recente per prima." : "Nessuna battuta trovata. Prova un'altra parola o togli i filtri.";
+  $("list").innerHTML = extra + (html || `<p class="empty">${emptyMsg}</p>`);
+}
+function draw(first){
+  let pool = view.flatMap(s => s.jokes).filter(j => !j.sec.ref);
+  if (drawFrom === "star") pool = pool.filter(j => stars.has(j.text));
+  const card = $("card");
+  if (!pool.length){ $("cardTxt").textContent = drawFrom === "star" ? "La scaletta è vuota. Metti una stellina accanto alle battute dall'elenco." : "Nessuna battuta da pescare."; $("pip").textContent = ""; $("cardMeta").innerHTML = ""; draw.last = null; updCardCmt(); return; }
+  let j = pool[Math.floor(Math.random()*pool.length)];
+  if (pool.length > 1 && draw.last === j.text) j = pool[(pool.indexOf(j)+1) % pool.length];
+  draw.last = j.text; updCardCmt();
+  $("pip").textContent = "№ " + (view.flatMap(s => s.jokes).indexOf(j) + 1) + " · pescata";
+  $("cardTxt").textContent = j.text;
+  $("cardMeta").innerHTML = `<span>${esc(j.sec.num ? j.sec.num + ". " : "")}${esc(j.sec.title)}</span>${j.url?`<a href="${esc(j.url)}" target="_blank" rel="noopener">${esc(j.src)}</a>`:''}`;
+  if (!first){ card.classList.remove("dealt"); void card.offsetWidth; card.classList.add("dealt"); }
+}
+function renderAll(){ rebuild(); renderChrome(); renderList(); renderAddSel(); syncNav(); try { renderQueue(); } catch(e){} }
+
+$("q").addEventListener("input", e => { state.q = e.target.value.trim(); renderList(); });
+$("src").addEventListener("change", e => { state.src = e.target.value; renderList(); });
+$("sec").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (!b) return; state.sec = b.dataset.k; renderAll(); });
+$("draw").addEventListener("click", () => draw(false));
+function openSheet(){ $("sheetBack").classList.add("on"); $("sheet").classList.add("on"); $("newTxt").focus(); }
+function closeSheet(){ $("sheetBack").classList.remove("on"); $("sheet").classList.remove("on"); $("cSheet").classList.remove("on"); $("dSheet").classList.remove("on"); $("tSheet").classList.remove("on"); $("gSheet").classList.remove("on"); cKey = null; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); }
+$("addOpen").addEventListener("click", openSheet);
+$("sheetClose").addEventListener("click", closeSheet);
+$("sheetBack").addEventListener("click", closeSheet);
+function placeSec(){
+  return;
+  const bar = $("sec"), slot = $("secSlot"); if (!bar || !slot) return;
+  const nb = $("navbar").getBoundingClientRect().bottom;
+  const stuck = slot.getBoundingClientRect().top < nb;
+  bar.classList.toggle("stuck", stuck);
+  bar.style.top = stuck ? nb + "px" : "";
+}
+$("app").addEventListener("scroll", () => { $("navbar").classList.toggle("on", $("app").scrollTop > 50); placeSec(); if (document.querySelector("li.joke.open")) closeSwipe(); }, {passive: true});
+window.addEventListener("resize", placeSec);
+function updMini(){
+  const pane = $("pane"), head = $("navbar"), y = pane.scrollTop, mini = head.classList.contains("mini");
+  if (!mini && y > 60 && pane.scrollHeight - pane.clientHeight > 260) head.classList.add("mini");
+  else if (mini && y < 8) head.classList.remove("mini");
+}
+$("pane").addEventListener("scroll", () => { updMini(); if (document.querySelector("li.joke.open")) closeSwipe(); }, {passive: true});
+$("card").addEventListener("click", e => { if (!e.target.closest("a")) draw(false); });
+$("list").addEventListener("click", e => {
+  const row = e.target.closest("li.joke");
+  if (selMode && row){ if (!row.dataset.pending) toggleSel(row); return; }
+  const swb = e.target.closest("[data-swipe]"); if (swb){ openRemove([row.dataset.t]); return; }
+  if (row && row.classList.contains("open")){ closeSwipe(); return; }
+  const rcb = e.target.closest("[data-rec]"); if (rcb){ toggleRec(rcb.dataset.rec); return; }
+  const cm = e.target.closest("[data-comment]"); if (cm){ openComments(cm.dataset.comment); return; }
+  const c = e.target.closest("[data-copy]"); if (c){ copy(c.dataset.copy); return; }
+  const s = e.target.closest("[data-star]");
+  if (s){ const t = s.dataset.star; stars.has(t) ? (stars.delete(t), toast("Tolta dalla scaletta")) : (stars.add(t), toast("Aggiunta alla scaletta")); saveStars(); renderAll(); return; }
+  if (e.target.id === "copyScaletta"){ const all = view.flatMap(s => s.jokes).filter(j => stars.has(j.text)); copy(all.map((j,i) => (i+1) + ". " + j.text).join("\n"), "Scaletta copiata"); return; }
+  if (e.target.id === "clearScaletta"){ stars.clear(); saveStars(); renderAll(); toast("Scaletta svuotata"); }
+});
+
+function renderAddSel(){
+  const sel = $("newSec"), keep = sel.value;
+  const opts = data.sections.filter(s => !s.ref).map(s => (s.num ? s.num + ". " : "") + s.title).concat([NEW_SEC]);
+  sel.innerHTML = opts.map(o => `<option value="${esc(o)}">${esc(o === NEW_SEC ? "Nuova sezione (la sceglie Claude)" : o)}</option>`).join("");
+  if (opts.includes(keep)) sel.value = keep;
+}
+/* Commenti sulle battute: salvati nel database della pagina, legati al testo della battuta */
+function recMap(){ const m = new Map(); for (const r of recRows){ if (r.chiave) m.set(r.chiave, r); } return m; }
+function recId(k){ let a = 5381, b = 0; for (let i = 0; i < k.length; i++){ const c = k.charCodeAt(i); a = ((a << 5) + a + c) >>> 0; b = (c + (b << 6) + (b << 16) - b) >>> 0; } return "r-" + a.toString(36) + b.toString(36); }
+function fmtShort(iso){ const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString("it-IT", {day: "numeric", month: "short"}); }
+async function toggleRec(text){
+  const key = keyOf(text), cur = recMap().get(key);
+  const db = await getDb(); if (!db){ toast("Per segnare apri la pagina su claude.ai con il tuo account."); return; }
+  try {
+    if (cur){ await db.collection("registrate").doc(cur.id || recId(key)).delete(); recRows = recRows.filter(r => r.chiave !== key); toast("Tolta da registrate"); }
+    else { const row = {chiave: key, testo: text}, id = recId(key); await db.collection("registrate").doc(id).set(row); recRows = recRows.concat([{id, ...row}]); toast("Segnata come registrata"); }
+    renderList(); updCardCmt();
+  } catch(err){ toast("Non sono riuscito a salvare. Riprova."); }
+}
+function commentMap(){ const m = new Map(); for (const r of commentRows){ if (r.chiave) m.set(r.chiave, (m.get(r.chiave) || 0) + 1); } return m; }
+function commentsOf(key){ return commentRows.filter(r => r.chiave === key && typeof r.testo === "string").sort((a, b) => String(a.creato).localeCompare(String(b.creato))); }
+function fmtWhen(iso){ const d = new Date(iso); if (isNaN(d)) return ""; return d.toLocaleDateString("it-IT", {day: "numeric", month: "short"}) + ", " + d.toLocaleTimeString("it-IT", {hour: "2-digit", minute: "2-digit"}); }
+function renderComments(){
+  if (!cKey) return;
+  const rows = commentsOf(cKey), box = $("cList");
+  box.innerHTML = rows.length ? rows.map(r => `<div class="cm"><p>${esc(r.testo)}</p><div class="cmeta"><span>${esc(fmtWhen(r.creato))}</span><button type="button" class="cdel" data-del="${esc(r.id)}">Elimina</button></div></div>`).join("") : `<p class="empty">Nessun commento. Scrivi il primo: una variante, un tempo comico, una nota per il palco.</p>`;
+  box.scrollTop = box.scrollHeight;
+}
+function openComments(text){
+  cKey = keyOf(text); $("cJoke").textContent = text;
+  $("sheetBack").classList.add("on"); $("cSheet").classList.add("on");
+  getDb().then(db => { $("cTxt").disabled = !db; $("cSend").disabled = !db; $("cTxt").placeholder = db ? "Aggiungi un commento" : "Per commentare apri la pagina su claude.ai con il tuo account."; });
+  renderComments();
+}
+function updCardCmt(){ const t = draw.last, n = t ? (commentMap().get(keyOf(t)) || 0) : 0; $("cardCmt").hidden = !t; $("cardCmtLbl").textContent = n ? "Commenti (" + n + ")" : "Commenti"; const rc = t ? recMap().get(keyOf(t)) : null; $("cardRec").hidden = !t; $("cardRecLbl").textContent = rc ? "Registrata" : "Segna come registrata"; $("cardRec").classList.toggle("on", !!rc); }
+function afterComments(){ renderList(); renderComments(); updCardCmt(); }
+$("cardCmt").addEventListener("click", () => { if (draw.last) openComments(draw.last); });
+$("cardRec").addEventListener("click", () => { if (draw.last) toggleRec(draw.last); });
+$("cClose").addEventListener("click", closeSheet);
+$("cTxt").addEventListener("input", e => { const el = e.target; el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 120) + "px"; });
+$("cForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const testo = $("cTxt").value.trim(); if (!testo || !cKey) return;
+  const db = await getDb(); if (!db){ toast("Per commentare apri la pagina su claude.ai."); return; }
+  $("cSend").disabled = true;
+  try { await db.collection("commenti").add({chiave: cKey, testo, creato: new Date().toISOString()}); $("cTxt").value = ""; $("cTxt").style.height = "auto"; }
+  catch(err){ toast("Non sono riuscito a salvare. Riprova."); }
+  $("cSend").disabled = false;
+});
+$("cList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-del]"); if (!b) return;
+  if (b.dataset.arm !== "1"){
+    b.dataset.arm = "1"; b.textContent = "Sicuro?"; b.classList.add("armed");
+    setTimeout(() => { if (b.isConnected){ b.dataset.arm = ""; b.textContent = "Elimina"; b.classList.remove("armed"); } }, 3000);
+    return;
+  }
+  const db = await getDb(); if (!db) return;
+  try { await db.collection("commenti").doc(b.dataset.del).delete(); } catch(err){ toast("Non sono riuscito a eliminare. Riprova."); }
+});
+/* Rimozione dal master: selezione multipla e scorrimento. Le richieste vanno nel database, poi Claude le porta nel Google Doc */
+function removedKeys(){ return new Set(rmRows.filter(r => r.chiave && (r.applicata !== true || Date.now() - Date.parse(r.applicataIl || "") < 600000)).map(r => r.chiave)); }
+function updateSelBar(){ const n = selected.size; $("selCount").textContent = n + (n === 1 ? " selezionata" : " selezionate"); $("selRm").disabled = !n; }
+function setSel(on){
+  selMode = on; document.body.classList.toggle("selecting", on);
+  $("selBtn").classList.toggle("on", on); $("selBtn").setAttribute("aria-label", on ? "Fine" : "Seleziona");
+  if (!on) selected.clear();
+  closeSwipe(); renderList(); updateSelBar();
+}
+function toggleSel(row){ const t = row.dataset.t; if (selected.has(t)){ selected.delete(t); row.classList.remove("sel"); } else { selected.add(t); row.classList.add("sel"); } updateSelBar(); }
+function closeSwipe(except){
+  document.querySelectorAll("li.joke.open").forEach(li => { if (li === except) return; li.classList.remove("open"); const r = li.querySelector(".jrow"); if (r) r.style.transform = ""; });
+}
+function openRemove(texts){
+  if (!texts.length) return;
+  rmPending = texts.slice();
+  $("dTitle").textContent = texts.length === 1 ? "Rimuovere questa battuta dal master?" : "Rimuovere " + texts.length + " battute dal master?";
+  $("dTxt").textContent = texts[0] + (texts.length > 1 ? " … e altre " + (texts.length - 1) : "");
+  $("sheetBack").classList.add("on"); $("dSheet").classList.add("on");
+}
+let rmBusy = false;
+function updRmBanner(){
+  const n = rmRows.filter(r => r.applicata !== true).length;
+  $("rmBanner").hidden = !n && !rmBusy;
+  $("rmUndo").hidden = rmBusy; $("rmRetry").hidden = rmBusy;
+  $("rmTxt").textContent = rmBusy ? "Rimozione dal Google Doc in corso…" : n === 1 ? "1 battuta in attesa di essere tolta dal Google Doc" : n + " battute in attesa di essere tolte dal Google Doc";
+}
+/* Rimozione diretta dal Google Doc: legge il Doc, trova i paragrafi, li cancella con un solo aggiornamento */
+function docOf(res){
+  let p = res && res.payload;
+  if (typeof p === "string"){ try { p = JSON.parse(p); } catch(e){ return null; } }
+  if (Array.isArray(p) && p[0] && typeof p[0].text === "string"){ try { p = JSON.parse(p[0].text); } catch(e){ return null; } }
+  const c = p && (p.content && p.content.tabs ? p.content : p);
+  return c && Array.isArray(c.tabs) ? c : null;
+}
+function planRemoval(c, keys){
+  const found = new Set(), ranges = [];
+  for (const tab of c.tabs){
+    const body = tab.documentTab && tab.documentTab.body && tab.documentTab.body.content; if (!body || !body.length) continue;
+    const lastEnd = body[body.length - 1].endIndex, tabId = tab.tabProperties && tab.tabProperties.tabId;
+    for (const el of body){
+      const par = el.paragraph; if (!par || !par.bullet) continue;
+      const left = (par.elements || []).map(e => e.textRun ? e.textRun.content : "").join("").replace(/\n$/, "");
+      const i = left.lastIndexOf(" — "), head = keyOf(i > 0 ? left.slice(0, i) : left), all = keyOf(left);
+      const hit = keys.find(k => head === k || all.startsWith(k + " "));
+      if (!hit) continue;
+      found.add(hit);
+      const last = el.endIndex === lastEnd, range = last ? {startIndex: el.startIndex - 1, endIndex: el.endIndex - 1} : {startIndex: el.startIndex, endIndex: el.endIndex};
+      if (tabId) range.tabId = tabId;
+      ranges.push(range);
+    }
+  }
+  ranges.sort((a, b) => b.startIndex - a.startIndex);
+  return {ranges, found};
+}
+async function removeFromDoc(items){
+  const keys = items.map(x => x.key);
+  const fallback = msg => { toast(msg); fireApply(); };
+  rmBusy = true; updRmBanner();
+  try {
+    const mcp = await getMcp();
+    if (!mcp){ fallback("Richiesta salvata: le toglie Claude dal Doc."); return; }
+    let done = false, plan = null;
+    for (let attempt = 0; attempt < 2 && !done; attempt++){
+      const doc = docOf(await mcp.callTool("Google Docs", "read_doc", {documentId: DOC_ID}, {cache: false}));
+      if (!doc){ fallback("Non riesco a leggere il Doc: le toglie Claude."); return; }
+      plan = planRemoval(doc, keys);
+      if (!plan.ranges.length){ done = true; break; }
+      try {
+        await mcp.callTool("Google Docs", "update_doc", {documentId: DOC_ID, requests: plan.ranges.map(r => ({deleteContentRange: {range: r}})), writeControl: {requiredRevisionId: doc.revisionId}}, {cache: false});
+        done = true;
+      } catch(err){
+        if (err && err.code === "tool_error" && attempt === 0) continue;
+        throw err;
+      }
+    }
+    const now = new Date().toISOString(), missing = [];
+    for (const it of items){
+      if (plan.found.has(it.key)) await it.ref.update({applicata: true, applicataIl: now, esito: "tolta dal Doc"});
+      else missing.push(it);
+    }
+    if (window.refreshDoc) window.refreshDoc();
+    if (missing.length){ fallback(missing.length === 1 ? "1 battuta non l'ho trovata nel Doc: la controlla Claude." : missing.length + " battute non le ho trovate nel Doc: le controlla Claude."); }
+    else toast(items.length === 1 ? "Tolta dal Google Doc" : items.length + " battute tolte dal Google Doc");
+  } catch(err){
+    const c = err && err.code;
+    if (c === "needs_reauth" || c === "server_not_connected" || c === "approval_required" || c === "blocked_by_policy") fallback("Non posso modificare il Doc da qui: le toglie Claude.");
+    else if (c === "server_unavailable" || c === "upstream_error") toast("Non so se la rimozione è andata a buon fine: controlla il Doc.");
+    else fallback("Rimozione dal Doc non riuscita: le controlla Claude.");
+  } finally { rmBusy = false; updRmBanner(); }
+}
+$("selBtn").addEventListener("click", () => setSel(!selMode));
+$("selAll").addEventListener("click", () => { visible().filter(j => !j.pending).forEach(j => selected.add(j.text)); renderList(); updateSelBar(); });
+$("selRm").addEventListener("click", () => openRemove([...selected]));
+$("dNo").addEventListener("click", closeSheet);
+$("dGo").addEventListener("click", async () => {
+  const texts = rmPending.slice(); if (!texts.length) return;
+  const db = await getDb(); if (!db){ toast("Per rimuovere apri la pagina su claude.ai con il tuo account."); return; }
+  $("dGo").disabled = true;
+  try {
+    const now = new Date().toISOString();
+    const items = [];
+    for (const t of texts) items.push({key: keyOf(t), ref: await db.collection("rimozioni").add({chiave: keyOf(t), testo: t, richiesta: now, applicata: false})});
+    texts.forEach(t => stars.delete(t)); saveStars();
+    closeSheet(); setSel(false);
+    removeFromDoc(items);
+  } catch(err){ toast("Non sono riuscito a salvare. Riprova."); }
+  $("dGo").disabled = false;
+});
+$("rmRetry").addEventListener("click", async () => {
+  const db = await getDb(); if (!db) return;
+  const rows = rmRows.filter(r => r.applicata !== true && r.chiave); if (!rows.length) return;
+  removeFromDoc(rows.map(r => ({key: r.chiave, ref: db.collection("rimozioni").doc(r.id)})));
+});
+$("rmUndo").addEventListener("click", async () => {
+  const db = await getDb(); if (!db) return;
+  try { for (const r of rmRows.filter(r => r.applicata !== true)) await db.collection("rimozioni").doc(r.id).delete(); toast("Rimozione annullata"); }
+  catch(err){ toast("Non sono riuscito ad annullare. Riprova."); }
+});
+let sw = null;
+$("list").addEventListener("touchstart", e => {
+  if (selMode) return;
+  const li = e.target.closest("li.joke"); if (!li || li.dataset.pending) return;
+  const t = e.touches[0];
+  sw = {li, row: li.querySelector(".jrow"), x0: t.clientX, y0: t.clientY, dx: 0, lock: null, base: li.classList.contains("open") ? -104 : 0};
+  closeSwipe(li);
+}, {passive: true});
+$("list").addEventListener("touchmove", e => {
+  if (!sw) return;
+  const t = e.touches[0], dx = t.clientX - sw.x0, dy = t.clientY - sw.y0;
+  if (sw.lock === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) sw.lock = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+  if (sw.lock !== "x") return;
+  sw.dx = dx; sw.row.style.transition = "none";
+  sw.row.style.transform = "translateX(" + Math.max(-140, Math.min(0, sw.base + dx)) + "px)";
+}, {passive: true});
+const endSwipe = () => {
+  if (!sw) return;
+  const {li, row, lock, base, dx} = sw; sw = null; row.style.transition = "";
+  if (lock !== "x") return;
+  if (base + dx < -52){ li.classList.add("open"); row.style.transform = "translateX(-104px)"; }
+  else { li.classList.remove("open"); row.style.transform = ""; }
+};
+$("list").addEventListener("touchend", endSwipe);
+$("list").addEventListener("touchcancel", endSwipe);
+/* Menu delle voci: scegli quali schede mostrare sopra l'elenco */
+try { hiddenTabs = new Set(JSON.parse(localStorage.getItem("bm-tab-nascoste") || "[]")); } catch(e){}
+function saveTabs(){ try { localStorage.setItem("bm-tab-nascoste", JSON.stringify([...hiddenTabs])); } catch(e){} }
+function renderTabMenu(){
+  $("tList").innerHTML = allTabs.map(c => `<label class="trow"><span class="tl">${esc(c.k === "all" ? "Tutte" : c.label)}</span>${c.n ? `<span class="tn">${c.n}</span>` : ""}<input type="checkbox" class="sw" data-k="${esc(c.k)}"${hiddenTabs.has(c.k) ? "" : " checked"}></label>`).join("");
+}
+function openTabMenu(){ renderTabMenu(); $("sheetBack").classList.add("on"); $("tSheet").classList.add("on"); }
+$("tabMenu").addEventListener("click", openTabMenu);
+$("tList").addEventListener("change", e => {
+  const el = e.target.closest("[data-k]"); if (!el) return;
+  const k = el.dataset.k;
+  if (el.checked) hiddenTabs.delete(k);
+  else {
+    const left = allTabs.filter(c => c.k !== k && !hiddenTabs.has(c.k)).length;
+    if (!left){ el.checked = true; toast("Ne serve almeno una voce."); return; }
+    hiddenTabs.add(k);
+  }
+  saveTabs(); renderAll();
+});
+$("tAll").addEventListener("click", () => { hiddenTabs.clear(); saveTabs(); renderAll(); renderTabMenu(); });
+$("tDone").addEventListener("click", closeSheet);
+/* Training: ripasso a intervalli sulle battute in scaletta. Esercizio "Dall'inizio": vedi l'attacco, dici il resto, controlli e ti valuti */
+const TR_DAYS = [0, 1, 3, 7, 14], TR_FRAC = [0.5, 0.4, 0.3, 0.2, 0.12], TR_SESSION = 15;
+let trData = {}; try { trData = JSON.parse(localStorage.getItem("bm-training") || "{}") || {}; } catch(e){}
+function trSave(){ try { localStorage.setItem("bm-training", JSON.stringify(trData)); } catch(e){} }
+let tr = {state: "idle", queue: [], i: 0, revealed: false, tries: {}, stats: {ok: 0, almost: 0, no: 0}};
+function trJokes(){ return view.flatMap(s => s.jokes).filter(j => !j.pending && stars.has(j.text)); }
+function trRow(j){ return trData[keyOf(j.text)] || {box: 0, due: 0, last: 0, seen: 0}; }
+function trDue(){ const now = Date.now(); return trJokes().filter(j => trRow(j).due <= now).sort((a, b) => trRow(a).box - trRow(b).box || trRow(a).due - trRow(b).due); }
+function trCue(text, box){
+  const w = text.trim().split(/\s+/), n = w.length;
+  if (n <= 3) return {cue: w.slice(0, 1).join(" "), rest: w.slice(1).join(" ")};
+  const k = Math.min(Math.max(2, Math.round(n * TR_FRAC[box])), n - 2);
+  return {cue: w.slice(0, k).join(" "), rest: w.slice(k).join(" ")};
+}
+function trWhen(ms){ const t = new Date(ms).setHours(0, 0, 0, 0), d0 = new Date().setHours(0, 0, 0, 0), days = Math.round((t - d0) / 86400000); return days <= 0 ? "oggi" : days === 1 ? "domani" : "tra " + days + " giorni"; }
+function trShuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function renderTraining(){
+  const body = $("trBody"), all = trJokes(), due = trDue();
+  const learned = all.filter(j => trRow(j).box >= 3).length;
+  $("trStat").innerHTML = `<span>${due.length} da ripassare oggi</span><span>${all.length} in scaletta · ${learned} sapute bene</span>`;
+  $("trBar").style.width = all.length ? Math.round(100 * learned / all.length) + "%" : "0%";
+  if (!all.length){ body.innerHTML = `<div class="tr-empty"><p class="tr-big">Scaletta vuota</p><p>Metti la stellina alle battute che vuoi imparare: qui le ripassi a intervalli.</p></div>`; return; }
+  if (tr.state === "card" && tr.queue[tr.i]){
+    const j = tr.queue[tr.i], row = trRow(j), c = trCue(j.text, row.box);
+    const dots = [0, 1, 2, 3, 4].map(n => `<i class="${n < row.box ? "on" : ""}"></i>`).join("");
+    const meta = `<div class="tr-meta"><span>Battuta ${tr.i + 1} di ${tr.queue.length}</span><span class="tr-dots" aria-label="Livello ${row.box} di 4">${dots}</span></div>`;
+    if (!tr.revealed){
+      body.innerHTML = `<div class="tr-card">${meta}<p class="tr-cue">${esc(c.cue)} <span class="gap">…</span></p><p class="tr-ask">Dì il resto a voce, poi mostra la battuta.</p></div><div class="tr-actions"><button class="btn solid tr-reveal" type="button" data-act="reveal">Mostra la battuta</button></div>`;
+    } else {
+      body.innerHTML = `<div class="tr-card">${meta}<p class="tr-cue"><span class="m">${esc(c.cue)}</span> ${esc(c.rest)}</p><p class="tr-ask">L'avevi?</p></div><div class="tr-actions"><button class="tr-btn no" type="button" data-act="rate" data-r="no">No</button><button class="tr-btn" type="button" data-act="rate" data-r="almost">Quasi</button><button class="tr-btn ok" type="button" data-act="rate" data-r="ok">L'avevo</button></div>`;
+    }
+    return;
+  }
+  if (tr.state === "done"){
+    const nx = all.map(j => trRow(j).due).filter(d => d > Date.now()).sort((a, b) => a - b)[0];
+    const st = tr.stats, n = st.ok + st.almost + st.no;
+    body.innerHTML = `<div class="tr-empty"><p class="tr-big">Sessione finita</p><p>${n} risposte: ${st.ok} «L'avevo», ${st.almost} «Quasi», ${st.no} «No».</p>${nx ? `<p>Prossimo ripasso ${trWhen(nx)}.</p>` : ""}<button class="btn solid tr-reveal" type="button" data-act="home">Torna al Training</button></div>`;
+    return;
+  }
+  body.innerHTML = due.length
+    ? `<div class="tr-empty"><p class="tr-big">${due.length === 1 ? "1 battuta da ripassare" : due.length + " battute da ripassare"}</p><p>Ti mostro l'inizio, tu dici il resto a voce, poi controlli e ti valuti. Quelle che sai tornano a distanza di giorni.</p><button class="btn solid tr-reveal" type="button" data-act="start">Inizia (${Math.min(due.length, TR_SESSION)})</button><button class="tr-link" type="button" data-act="all">Ripassa tutta la scaletta</button></div>`
+    : `<div class="tr-empty"><p class="tr-big">Per oggi hai finito</p><p>${(() => { const nx = all.map(j => trRow(j).due).filter(d => d > Date.now()).sort((a, b) => a - b)[0]; return nx ? "Prossimo ripasso " + trWhen(nx) + "." : ""; })()}</p><button class="btn solid tr-reveal" type="button" data-act="all">Ripassa comunque la scaletta</button></div>`;
+}
+function trOpen(){ if (tr.state !== "card") tr.state = "idle"; renderTraining(); }
+function trStart(list){ tr = {state: list.length ? "card" : "idle", queue: list, i: 0, revealed: false, tries: {}, stats: {ok: 0, almost: 0, no: 0}}; renderTraining(); }
+function trRate(r){
+  const j = tr.queue[tr.i]; if (!j) return;
+  const k = keyOf(j.text), row = trRow(j), now = Date.now();
+  tr.tries[k] = (tr.tries[k] || 0) + 1;
+  let box = row.box, due = now;
+  if (r === "ok"){ box = Math.min(4, box + 1); due = now + TR_DAYS[box] * 86400000; tr.stats.ok++; }
+  else if (r === "almost"){ due = now + 86400000; tr.stats.almost++; }
+  else { box = 0; due = now; tr.stats.no++; }
+  trData[k] = {box, due, last: now, seen: (row.seen || 0) + 1}; trSave();
+  if (r !== "ok" && tr.tries[k] < 2) tr.queue.push(j);
+  tr.i++; tr.revealed = false;
+  if (tr.i >= tr.queue.length) tr.state = "done";
+  renderTraining();
+}
+$("trBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const a = b.dataset.act;
+  if (a === "start") trStart(trDue().slice(0, TR_SESSION));
+  else if (a === "all") trStart(trShuffle(trJokes()));
+  else if (a === "reveal"){ tr.revealed = true; renderTraining(); }
+  else if (a === "rate") trRate(b.dataset.r);
+  else if (a === "home"){ tr.state = "idle"; renderTraining(); }
+});
+if (window.visualViewport){
+  const kbFix = () => { const vv = window.visualViewport; document.documentElement.style.setProperty("--kb", Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + "px"); };
+  window.visualViewport.addEventListener("resize", kbFix); window.visualViewport.addEventListener("scroll", kbFix);
+}
+renderAll(); draw(true);
+
+/* Aggiunta di battute: salvate nel database della pagina, poi Claude le porta nel Google Doc */
+const APPLY_TRIGGER = "trig_018eiVJ99NWmr3m2PHpEcss5";
+let dbP = null, mcpP = null;
+const getDb = () => dbP || (dbP = window.claude && window.claude.use ? window.claude.use("db") : Promise.resolve(null));
+const getMcp = () => mcpP || (mcpP = window.claude && window.claude.use ? window.claude.use("mcp") : Promise.resolve(null));
+const addMsg = (m, err) => { const el = $("addMsg"); el.textContent = m; el.classList.toggle("err", !!err); };
+(async () => {
+  const db = await getDb();
+  if (!db){ $("addBtn").disabled = true; addMsg("Per aggiungere battute apri la pagina su claude.ai con il tuo account."); return; }
+  let prevApplied = null;
+  db.collection("battute").onSnapshot(snap => { const rows = snap.docs.map(x => ({id: x.id, ...(x.data() || {})})); keptRows = rows.filter(r => r.stato === "tieni"); renderQueue(rows); renderList(); }, () => {});
+  db.collection("aggiunte").onSnapshot(snap => {
+    const rows = snap.docs.map(d => d.data() || {});
+    addedRows = rows;
+    pending = rows.filter(r => !r.applicata && typeof r.testo === "string" && r.testo.trim());
+    aggPending = pending.length; renderQueue();
+    const applied = rows.filter(r => r.applicata).length;
+    if (prevApplied !== null && applied > prevApplied && window.refreshDoc) window.refreshDoc();
+    prevApplied = applied;
+    renderAll();
+  }, () => {});
+  db.collection("rimozioni").onSnapshot(snap => {
+    rmRows = snap.docs.map(d => ({id: d.id, ...(d.data() || {})}));
+    const applied = rmRows.filter(r => r.applicata === true).length;
+    if (rmApplied !== null && applied > rmApplied && window.refreshDoc) window.refreshDoc();
+    rmApplied = applied; updRmBanner(); renderAll();
+  }, () => {});
+  db.collection("richieste").onSnapshot(snap => { if (!searchReqId) return; const d = snap.docs.find(x => x.id === searchReqId); sReq = d ? (d.data() || {}) : null; if (searchAt) sRender(); }, () => {});
+  db.collection("registrate").onSnapshot(snap => { recRows = snap.docs.map(d => ({id: d.id, ...(d.data() || {})})); renderList(); updCardCmt(); }, () => {});
+  db.collection("commenti").onSnapshot(snap => { commentRows = snap.docs.map(d => ({id: d.id, ...(d.data() || {})})); afterComments(); }, () => {});
+})();
+/* Da valutare */
+let qRows = [], aggPending = 0, autoFired = false, applyActive = false, applyTotal = 0, applyStart = 0, applyDoneAt = 0;
+function runSave(){ try { localStorage.setItem("bm-run", JSON.stringify({apply: applyActive ? {total: applyTotal, start: applyStart} : null, search: searchAt ? {at: searchAt, base: searchBase, req: searchReqId} : null})); } catch(e){} }
+function restoreRuns(){
+  let r = {}; try { r = JSON.parse(localStorage.getItem("bm-run") || "{}") || {}; } catch(e){}
+  const now = Date.now();
+  if (r.apply && now - r.apply.start < 20 * 60 * 1000){ applyActive = true; applyTotal = r.apply.total; applyStart = r.apply.start; }
+  if (r.search && now - r.search.at < 15 * 60 * 1000){
+    searchAt = r.search.at; searchBase = r.search.base || 0; searchReqId = r.search.req || null; sSeen = 0; sLast = now;
+    $("searchBtn").disabled = true; $("searchBtn").textContent = "Ricerca in corso…";
+    $("sProg").hidden = false; sRender(); clearInterval(searchTimer); searchTimer = setInterval(sTick, 1000);
+  }
+  if (!applyActive && !searchAt) runSave();
+}
+const cards = new Map();
+const secOptions = () => data.sections.filter(s => !s.ref).map(s => (s.num ? s.num + ". " : "") + s.title).concat([NEW_SEC]);
+async function fireApply(){
+  try { const mcp = await getMcp(); if (!mcp) return false; await mcp.callTool("Claude Code Remote", "fire_trigger", {trigger_id: APPLY_TRIGGER}); return true; } catch(e){ return false; }
+}
+let rvCur = null, rvTotal = 0, rvBusy = false, rvEditing = false, rvLast = null;
+const rvReduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function rvShow(r){
+  rvEditing = false; $("rvEdit").hidden = true; $("rvEditBtn").textContent = "Modifica il testo";
+  $("rvTxt").textContent = r.testoFinale || r.testo || "";
+  $("rvEdit").value = r.testoFinale || r.testo || "";
+  $("rvSrc").innerHTML = r.fonteUrl ? `<a href="${esc(r.fonteUrl)}" target="_blank" rel="noopener">${esc(r.fonte || "File")}</a>` : esc(r.fonte || "");
+  const opts = secOptions(); const sel = $("rvSec");
+  sel.innerHTML = opts.map(o => `<option value="${esc(o)}">${esc(o === NEW_SEC ? "Nuova sezione (la sceglie Claude)" : o)}</option>`).join("");
+  sel.value = opts.includes(r.sezione) ? r.sezione : NEW_SEC;
+  let notes = "";
+  if (r.modificata && r.versioneMaster) notes += `<p><b>Ora nel master</b>${esc(r.versioneMaster)}</p>`;
+  if (r.note) notes += `<p><b>Nota</b>${esc(r.note)}</p>`;
+  $("rvNotes").innerHTML = notes; $("rvNotes").hidden = !notes;
+  const c = $("rvCard"); c.className = "rv-card"; c.style.transform = ""; c.style.opacity = "";
+  void c.offsetWidth; if (!rvReduce) c.classList.add("in");
+}
+/* Cerchio di avanzamento: percentuale vera se nota, altrimenti rotella che gira */
+function ringSvg(pct, done){
+  const R = 18, C = 2 * Math.PI * R, ind = pct === null;
+  const off = ind ? C * 0.72 : C * (1 - Math.max(0, Math.min(100, pct)) / 100);
+  return `<svg class="ring${ind ? " spin" : ""}" viewBox="0 0 44 44" aria-hidden="true"><g transform="rotate(-90 22 22)"><g class="rg"><circle class="rt" cx="22" cy="22" r="${R}"/><circle class="rp" cx="22" cy="22" r="${R}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></g></g>${done ? '<path class="rk" d="M14 23l6 6 11-12"/>' : ind ? "" : `<text x="22" y="26.5" text-anchor="middle">${Math.round(pct)}%</text>`}</svg>`;
+}
+function decidedNow(){ return qRows.filter(r => (r.stato === "tieni" || r.stato === "scarta") && !r.applicata).length + aggPending; }
+function startApply(){ applyTotal = decidedNow(); applyStart = Date.now(); applyActive = applyTotal > 0; runSave(); renderQueue(); }
+/* Le battute già nel master, già tenute, scartate o rimandate non rientrano in coda; niente doppioni tra le candidate */
+function candKeys(r){ return [r.testo, r.testoFinale].filter(Boolean).map(keyOf); }
+function knownKeys(){
+  const k = new Set();
+  view.forEach(s => s.jokes.forEach(j => { if (!j.pending) k.add(keyOf(j.text)); }));
+  qRows.forEach(r => { if (["tieni", "scarta", "rimanda", "esclusa"].includes(r.stato)) candKeys(r).forEach(x => k.add(x)); });
+  return k;
+}
+function sameKnown(key, set){
+  if (set.has(key)) return true;
+  const h = key.slice(0, 40); if (h.length < 20) return false;
+  for (const x of set) if (x.length >= 20 && (x.startsWith(h) || key.startsWith(x.slice(0, 40)))) return true;
+  return false;
+}
+function freshCandidates(list){
+  const known = knownKeys(), seen = new Set();
+  return list.filter(r => {
+    const ks = candKeys(r); if (!ks.length) return true;
+    if (ks.some(x => sameKnown(x, known)) || ks.some(x => seen.has(x))) return false;
+    ks.forEach(x => seen.add(x)); return true;
+  });
+}
+function renderQueue(rows){
+  if (rows) qRows = rows;
+  checkSearch();
+  const queue = freshCandidates(qRows.filter(r => r.stato === "da_valutare").sort((a,b) => String(a.aggiunta||"").localeCompare(String(b.aggiunta||"")) || a.id.localeCompare(b.id)));
+  const later = qRows.filter(r => r.stato === "rimanda");
+  const decided = qRows.filter(r => (r.stato === "tieni" || r.stato === "scarta") && !r.applicata).length + aggPending;
+  if (queue.length > rvTotal) rvTotal = queue.length;
+  $("rv").hidden = queue.length === 0;
+  $("queueEmpty").hidden = queue.length > 0;
+  if (queue.length){
+    $("rvCount").textContent = (rvTotal - queue.length + 1) + " / " + rvTotal;
+    const n = queue[0];
+    if (!rvCur || rvCur.id !== n.id){ rvCur = n; rvShow(n); }
+  } else rvCur = null;
+  const bd = $("qBadge"); bd.textContent = queue.length; bd.hidden = queue.length === 0;
+  if (applyActive && (decided === 0 || Date.now() - applyStart > 20 * 60 * 1000)){ if (decided === 0){ applyDoneAt = Date.now(); setTimeout(() => renderQueue(), 8200); } applyActive = false; runSave(); }
+  const applyDone = applyDoneAt && Date.now() - applyDoneAt < 8000;
+  if (applyActive) applyTotal = Math.max(applyTotal, decided);
+  $("applyBar").hidden = decided === 0 && !applyActive && !applyDone;
+  $("applyBtn").hidden = applyActive || !!applyDone;
+  if (applyActive){
+    const done = applyTotal - decided, pct = applyTotal ? Math.round(100 * done / applyTotal) : 0;
+    $("applyRing").hidden = false; $("applyRing").innerHTML = ringSvg(pct > 0 ? pct : null, false);
+    $("applyTxt").textContent = pct > 0 ? "Sto portando le decisioni nel Google Doc: " + done + " di " + applyTotal + "." : "Sto portando le decisioni nel Google Doc…";
+  } else if (applyDone){
+    $("applyRing").hidden = false; $("applyRing").innerHTML = ringSvg(100, true);
+    $("applyTxt").textContent = "Fatto: tutte le decisioni sono nel Google Doc.";
+  } else {
+    $("applyRing").hidden = true;
+    $("applyTxt").textContent = decided === 1 ? "1 decisione da portare nel Google Doc." : decided + " decisioni da portare nel Google Doc.";
+  }
+  $("later").hidden = later.length === 0;
+  $("laterN").textContent = later.length === 1 ? "1 battuta" : later.length + " battute";
+  $("laterList").innerHTML = later.map(r => `<div class="laterrow"><p>${esc(r.testo||"")}</p><button class="chip" type="button" data-back="${esc(r.id)}">Valuta ora</button></div>`).join("");
+  if (queue.length === 0 && decided > 0 && !autoFired && window.__decidedHere){ autoFired = true; fireApply().then(ok => { if (ok) startApply(); else $("applyTxt").textContent = "Non sono riuscito ad avviarlo. Ci pensa comunque il prossimo giro automatico, stasera."; }); }
+}
+const mmss = sec => Math.floor(sec / 60) + ":" + String(Math.floor(sec % 60)).padStart(2, "0");
+function sNew(){ return Math.max(0, qRows.filter(r => r.stato === "da_valutare").length - searchBase); }
+function sRender(){
+  if (!searchAt) return;
+  const r = sReq || {}, n = sNew();
+  const pct = typeof r.avanzamento === "number" ? Math.max(0, Math.min(100, r.avanzamento)) : null;
+  $("sFill").classList.toggle("ind", pct === null);
+  $("sFill").style.width = pct === null ? "" : pct + "%";
+  $("sRing").innerHTML = ringSvg(pct, false);
+  const fase = r.fase || (r.stato === "in_corso" ? "Claude sta cercando nel Drive" : "Richiesta inviata: di solito Claude parte dopo 4-5 minuti");
+  $("sPhase").textContent = fase + (pct !== null ? " · " + Math.round(pct) + "%" : "") + (n ? " · " + n + (n === 1 ? " trovata" : " trovate") : "");
+  $("sTime").textContent = mmss((Date.now() - searchAt) / 1000);
+}
+function sFinish(kind, msg){
+  clearInterval(searchTimer); searchAt = 0; runSave();
+  $("sFill").classList.remove("ind"); $("sFill").style.width = kind === "ok" ? "100%" : $("sFill").style.width;
+  $("sPhase").textContent = msg; $("sRing").innerHTML = kind === "ok" ? ringSvg(100, true) : "";
+  $("searchBtn").disabled = false; $("searchBtn").textContent = "Cerca nuove battute ora";
+  clearTimeout(sHide); sHide = setTimeout(() => { if (!searchAt) $("sProg").hidden = true; }, 12000);
+}
+function sTick(){
+  if (!searchAt) return;
+  const r = sReq || {}, n = sNew();
+  if (n > sSeen){ sSeen = n; sLast = Date.now(); }
+  const trovate = n === 1 ? "1 nuova battuta" : n + " nuove battute";
+  if (r.stato === "fatta") return sFinish("ok", n ? "Ricerca finita: " + trovate : "Ricerca finita: nessuna battuta nuova");
+  if (r.stato === "errore") return sFinish("err", "La ricerca si è fermata" + (r.errore ? ": " + r.errore : "."));
+  if (!r.stato && typeof r.avanzamento !== "number" && n > 0 && Date.now() - sLast > 120000) return sFinish("ok", "Ricerca finita: " + trovate);
+  if (!r.stato && typeof r.avanzamento !== "number" && n === 0 && Date.now() - searchAt > 8 * 60 * 1000) return sFinish("warn", "Dopo 8 minuti nessuna presa in carico: l'attività non sembra leggere le richieste di ricerca. Puoi riprovare più tardi.");
+  if (Date.now() - searchAt > 15 * 60 * 1000) return sFinish("warn", n ? "Nessun altro aggiornamento: " + trovate : "Nessuna risposta da Claude dopo 15 minuti. Puoi riprovare.");
+  sRender();
+}
+function checkSearch(){ if (searchAt) sRender(); }
+async function startSearch(){
+  const db = await getDb(); if (!db){ toast("Per avviare la ricerca apri la pagina su claude.ai."); return; }
+  const btn = $("searchBtn"), txt = $("searchTxt");
+  btn.disabled = true; btn.textContent = "Ricerca in corso…"; txt.hidden = true;
+  clearTimeout(sHide); clearInterval(searchTimer);
+  sReq = null; searchReqId = null; sSeen = 0; sLast = Date.now();
+  try { const ref = await db.collection("richieste").add({tipo: "ricerca", stato: "in_attesa", richiesta: new Date().toISOString()}); searchReqId = ref && ref.id; } catch(e){}
+  const ok = await fireApply();
+  if (!ok){ btn.disabled = false; btn.textContent = "Cerca nuove battute ora"; txt.hidden = false; txt.textContent = "Non sono riuscito ad avviare la ricerca. Controlla il collegamento con Claude Code e riprova."; return; }
+  searchAt = Date.now(); searchBase = qRows.length; runSave();
+  $("sProg").hidden = false; sRender();
+  searchTimer = setInterval(sTick, 1000);
+}
+$("searchBtn").addEventListener("click", startSearch);
+function rvButtons(dis){ for (const id of ["rvKeep","rvDrop","rvLater"]) $(id).disabled = dis; }
+async function rvDecide(act, swiped){
+  const r = rvCur; if (!r || rvBusy) return;
+  const db = await getDb(); if (!db) return;
+  const now = new Date().toISOString();
+  const upd = {stato: act, decisaIl: now};
+  if (act === "tieni"){
+    const txt = (rvEditing ? $("rvEdit").value : (r.testoFinale || r.testo || "")).trim();
+    if (!txt){ toast("Il testo è vuoto"); return; }
+    upd.testoFinale = txt !== (r.testo || "").trim() ? txt : null;
+    upd.sezioneFinale = $("rvSec").value;
+  }
+  rvBusy = true; rvButtons(true);
+  const c = $("rvCard");
+  if (!swiped){ c.classList.remove("in"); c.style.transform = ""; c.style.opacity = ""; c.classList.add({tieni:"out-keep", scarta:"out-drop", rimanda:"out-later"}[act]); }
+  if (navigator.vibrate){ try { navigator.vibrate(12); } catch(_){} }
+  try {
+    await Promise.all([db.collection("battute").doc(r.id).update(upd), rvReduce ? null : new Promise(res => setTimeout(res, 260))]);
+    window.__decidedHere = true; autoFired = false; rvLast = r.id;
+    const t = r.testo || "";
+    $("rvUndoTxt").textContent = (act === "tieni" ? "Tenuta" : act === "scarta" ? "Scartata" : "Più tardi") + ": “" + t.slice(0, 40) + (t.length > 40 ? "…" : "") + "”";
+    $("rvUndo").hidden = false;
+  } catch(err){
+    c.className = "rv-card"; c.style.transform = ""; c.style.opacity = "";
+    toast("Non sono riuscito a salvare. Riprova.");
+  } finally { rvBusy = false; rvButtons(false); }
+}
+$("rvKeep").onclick = () => rvDecide("tieni");
+$("rvDrop").onclick = () => rvDecide("scarta");
+$("rvLater").onclick = () => rvDecide("rimanda");
+$("rvEditBtn").onclick = () => {
+  rvEditing = !rvEditing; $("rvEdit").hidden = !rvEditing; $("rvTxt").hidden = rvEditing;
+  $("rvEditBtn").textContent = rvEditing ? "Usa il testo originale" : "Modifica il testo";
+  if (rvEditing) $("rvEdit").focus(); else $("rvEdit").value = rvCur ? (rvCur.testoFinale || rvCur.testo || "") : "";
+};
+$("rvUndoBtn").onclick = async () => {
+  if (!rvLast) return; const db = await getDb(); if (!db) return;
+  const r = qRows.find(x => x.id === rvLast);
+  if (r && r.applicata){ $("rvUndoTxt").textContent = "Già portata nel Google Doc: correggila da lì."; return; }
+  try { await db.collection("battute").doc(rvLast).update({stato: "da_valutare", decisaIl: null, testoFinale: null, sezioneFinale: null}); rvLast = null; rvCur = null; $("rvUndo").hidden = true; }
+  catch(err){ toast("Non sono riuscito ad annullare. Riprova."); }
+};
+document.addEventListener("keydown", e => {
+  if ($("viewValuta").hidden || !rvCur) return;
+  if (e.target.closest && e.target.closest("textarea,select,input")) return;
+  if (e.key === "ArrowRight") rvDecide("tieni"); else if (e.key === "ArrowLeft") rvDecide("scarta"); else if (e.key === "ArrowDown") rvDecide("rimanda");
+});
+(function(){
+  const c = $("rvCard"); let x0 = null, dx = 0, pid = null;
+  c.addEventListener("pointerdown", e => { if (rvBusy || e.target.closest("textarea,select,a,button,input")) return; x0 = e.clientX; dx = 0; pid = e.pointerId; c.setPointerCapture(pid); c.classList.remove("in"); c.classList.add("drag"); });
+  c.addEventListener("pointermove", e => { if (x0 === null || e.pointerId !== pid) return; dx = e.clientX - x0; c.style.transform = `translateX(${dx}px) rotate(${dx/32}deg)`; $("rvStampKeep").style.opacity = Math.max(0, Math.min(1, dx/90)); $("rvStampDrop").style.opacity = Math.max(0, Math.min(1, -dx/90)); });
+  const end = () => { if (x0 === null) return; c.classList.remove("drag"); x0 = null; $("rvStampKeep").style.opacity = 0; $("rvStampDrop").style.opacity = 0;
+    if (dx > 100){ c.style.transform = "translateX(115%) rotate(7deg)"; c.style.opacity = "0"; rvDecide("tieni", true); }
+    else if (dx < -100){ c.style.transform = "translateX(-115%) rotate(-7deg)"; c.style.opacity = "0"; rvDecide("scarta", true); }
+    else c.style.transform = ""; dx = 0; };
+  c.addEventListener("pointerup", end); c.addEventListener("pointercancel", end);
+})();
+$("laterList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-back]"); if (!b) return;
+  const db = await getDb(); if (!db) return;
+  try { await db.collection("battute").doc(b.dataset.back).update({stato: "da_valutare"}); } catch(err){ toast("Non sono riuscito a salvare. Riprova."); }
+});
+$("applyBtn").addEventListener("click", async () => {
+  $("applyBtn").disabled = true;
+  const ok = await fireApply();
+  $("applyBtn").disabled = false;
+  if (ok) startApply(); else $("applyTxt").textContent = "Non sono riuscito ad avviarlo. Ci pensa comunque il prossimo giro automatico, stasera.";
+});
+function viewOf(){ return location.hash === "#valuta" ? "valuta" : location.hash === "#training" ? "training" : location.hash === "#pesca" ? "pesca" : "elenco"; }
+function syncNav(){
+  const v = viewOf();
+  const on = {tabElenco: v === "elenco" && state.sec !== "star", tabPesca: v === "pesca", tabScaletta: v === "elenco" && state.sec === "star", tabValuta: v === "valuta", tabTraining: v === "training"};
+  for (const k in on){ if (on[k]) $(k).setAttribute("aria-current", "page"); else $(k).removeAttribute("aria-current"); }
+}
+function showView(){
+  const v = viewOf();
+  $("viewElenco").hidden = v !== "elenco"; $("viewPesca").hidden = v !== "pesca"; $("viewValuta").hidden = v !== "valuta"; $("viewTraining").hidden = v !== "training"; if (v === "training") trOpen();
+  syncNav();
+  placeSec();
+  document.body.dataset.v = v; $("navbar").classList.remove("mini"); $("selBtn").hidden = v !== "elenco"; if (v !== "elenco" && selMode) setSel(false);
+  if (v === "pesca") draw(false);
+  $("app").scrollTo({top: 0}); $("pane").scrollTo({top: 0});
+}
+function goElenco(){ if (viewOf() !== "elenco") location.hash = "#elenco"; else showView(); }
+$("tabElenco").addEventListener("click", () => { state.sec = "all"; renderAll(); });
+$("tabScaletta").addEventListener("click", () => { state.sec = "star"; renderAll(); goElenco(); });
+$("drawFromTabs").addEventListener("click", e => {
+  const b = e.target.closest("[data-from]"); if (!b) return;
+  drawFrom = b.dataset.from;
+  for (const x of $("drawFromTabs").children) x.setAttribute("aria-selected", x === b);
+  draw(false);
+});
+window.addEventListener("hashchange", showView); showView();
+
+$("addForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const testo = $("newTxt").value.trim(), sezione = $("newSec").value, nota = $("newNote").value.trim();
+  if (!testo){ addMsg("Scrivi la battuta prima di aggiungerla.", true); $("newTxt").focus(); return; }
+  if (data.sections.some(s => s.jokes.some(j => norm(j.text) === norm(testo)))){ addMsg("Questa battuta è già nel master.", true); return; }
+  const db = await getDb(); if (!db){ addMsg("Per aggiungere battute apri la pagina su claude.ai con il tuo account.", true); return; }
+  $("addBtn").disabled = true; addMsg("Salvo…");
+  try {
+    await db.collection("aggiunte").add({testo, sezione, nota, aggiunta: new Date().toISOString(), applicata: false});
+  } catch(err){
+    $("addBtn").disabled = false;
+    addMsg(err && err.code === "permission_denied" ? "Non hai il permesso di aggiungere battute a questa pagina." : "Non sono riuscito a salvarla. Riprova tra poco.", true);
+    return;
+  }
+  $("newTxt").value = ""; $("newNote").value = "";
+  let fired = false;
+  try { const mcp = await getMcp(); if (mcp){ await mcp.callTool("Claude Code Remote", "fire_trigger", {trigger_id: APPLY_TRIGGER}); fired = true; } } catch(err){}
+  $("addBtn").disabled = false;
+  addMsg(fired ? "Salvata. Claude la scrive nel Google Doc tra qualche minuto: intanto la vedi qui sotto." : "Salvata qui. Nel Google Doc la porta Claude al prossimo giro di aggiornamento, stasera.");
+  toast("Battuta aggiunta"); closeSheet();
+});
+
+/* Versione aggiornata dal Google Doc, se chi guarda ha collegato Google Drive */
+function setStatus(text, live, action){
+  $("statusText").innerHTML = esc(text) + (action ? ` · <button type="button" id="statusBtn">${esc(action)}</button>` : "");
+  $("status").classList.toggle("live", !!live); $("status").classList.toggle("quiet", !!live || /^Carico/.test(text));
+}
+function apply(result){
+  let p = result && result.payload;
+  if (typeof p === "string"){ try { p = JSON.parse(p); } catch(e){} }
+  const md = p && typeof p.fileContent === "string" ? p.fileContent : null;
+  if (!md) return false;
+  const parsed = parse(md);
+  if (!parsed.sections.length) return false;
+  data = parsed; renderAll();
+  const at = result.cache && result.cache.storedAt ? new Date(result.cache.storedAt) : new Date();
+  setStatus("Aggiornato dal Google Doc alle " + at.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}), true);
+  return true;
+}
+(async () => {
+  const mcp = await getMcp();
+  if (!mcp) return;
+  const input = {fileId: DOC_ID, includeComments: true};
+  const loadOnce = async () => {
+    setStatus("Carico il Google Doc…");
+    try { if (!apply(await mcp.callTool("Google Drive", "read_file_content", input, {cache:{staleTime:600000, gcTime:604800000, refresh:true}}))) setStatus("Copia salvata"); }
+    catch(err){ handle(err); }
+  };
+  const handle = err => {
+    const c = err && err.code;
+    if (c === "server_not_connected") setStatus("Copia salvata · collega Google Drive per la versione aggiornata");
+    else if (c === "needs_reauth") setStatus("Copia salvata · ricollega Google Drive nelle impostazioni");
+    else if (c === "approval_required" || c === "not_in_manifest") setStatus("Copia salvata", false, "Carica la versione aggiornata");
+    else setStatus("Copia salvata", false, "Riprova");
+  };
+  $("status").addEventListener("click", e => { if (e.target.id === "statusBtn") loadOnce(); });
+  window.refreshDoc = loadOnce;
+  mcp.watchTool("Google Drive", "read_file_content", input, ev => {
+    if (ev.type === "data"){ if (!apply(ev.result)) setStatus("Copia salvata"); }
+    else handle(ev.error);
+  }, {cache:{staleTime:600000, gcTime:604800000}});
+})();
+restoreRuns();
+</script>
+<script>window.BMG && BMG.init();</script>
+<script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+
+</body></html>
